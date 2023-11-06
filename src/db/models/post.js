@@ -2,17 +2,17 @@ const mongoose = require('mongoose');
 const {ObjectId} = mongoose.Schema.Types;
 
 const postSchema = new mongoose.Schema({
-    title:{
+    category:{
         type:String,
         required:true
     },
-    body:{
+    caption:{
         type:String,
         required:true
     },
     photo:{
         type:String,
-        required:true
+        default:"no photo"
     },
     postedBy:{
        type:ObjectId,
@@ -20,4 +20,5 @@ const postSchema = new mongoose.Schema({
     }
 });
 
-mongoose.model("Post",postSchema);
+const Post = mongoose.model("Post",postSchema);
+module.exports = Post;

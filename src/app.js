@@ -4,7 +4,7 @@ const router = require('./routes');
 const mongoose = require('mongoose');
 const {MONGOURI} = require('./config/key');
 const PORT = 5000
-require('./db/models/user');
+
 
 
 const app = express();
@@ -37,7 +37,6 @@ mongoose.connection.on('error', (err) => {
     console.log("err connecting", err);
 });
 
-// require('./models/user');
 
 // const customMiddleware = (req, res, next) => {
 //     console.log("middleware executed!!");
@@ -64,7 +63,6 @@ app.use((req, res) =>{
 });
 
 // handle error 500
-// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next)=>{
 	console.log(err);
 	return res.status(500).json({

@@ -2,11 +2,11 @@ const jwt = require('jsonwebtoken');
 const {JWT_SECRET_KEY} = require('../config/key');
 
 module.exports = {
-    auth: async (req, res, next) => {
+    protected: async (req, res, next) => {
         try {
             const {authorization} = req.headers;
 
-            console.log('TOKEN :', authorization);
+            // console.log('TOKEN :', authorization);
             if (!authorization) {
                 return res.status(401).json({
                     status: false,
