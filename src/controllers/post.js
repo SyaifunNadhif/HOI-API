@@ -143,7 +143,7 @@ module.exports = {
         }
     },
 
-    createComment: async (req, res, next) => {
+    createCommentPost: async (req, res, next) => {
         try {
             const { postId } = req.params;
             const { text } = req.body;
@@ -153,13 +153,13 @@ module.exports = {
             const post = await Post.findById(postId);
 
             if (!post) {
-                return response.errorNotFound(res, "Post not found");
+                return response.errorBadRequest(res, "Post not found");
             }
 
             // Buat objek komentar
             const comment = {
                 text,
-                postedBy: user._id,
+                postedBy: user.id,
             };
 
             // Tambahkan komentar ke postingan
@@ -168,6 +168,59 @@ module.exports = {
             await post.save();
 
             return response.successOK(res, "Comment created successfully", comment);
+        } catch (e) {
+            next(e);
+        }
+    },
+
+    getDetailPost: async (req, res, next) => {
+        try {
+            const { postId } = req.params;
+
+            // Cari postingan berdasarkan ID dan populasi informasi pengguna yang mempostingnya
+            const post = await Post.findById(postId).populate('postedBy', '_id name email');
+
+            if (!post) {
+                return response.errorBadRequest(res, "Post not found", null);
+            }
+
+            return response.successOK(res, "Post details retrieved successfully", post);
+        } catch (e) {
+            next(e);
+        }
+    },
+
+    deleteComment: async (req, res, next) => {
+        try {
+            const { postId, commentId } = req.params;
+            const { user } = req;
+
+            // Cari postingan berdasarkan ID
+            const post = await Post.findById(postId);
+
+            if (!post) {
+                return response.errorNotFound(res, "Post not found");
+            }
+
+            // Temukan indeks komentar yang akan dihapus
+            const commentIndex = post.comments.findIndex(comment => comment._id.toString() === commentId);
+
+            if (commentIndex === -1) {
+                return response.errorNotFound(res, "Comment not found");
+            }
+
+            // Periksa apakah pengguna yang mencoba menghapus komentar adalah pemilik postingan atau pemilik komentar
+            if (post.postedBy.toString() !== user._id.toString() &&
+                post.comments[commentIndex].postedBy.toString() !== user._id.toString()) {
+                return response.errorUnauthorized(res, "You are not authorized to delete this comment");
+            }
+
+            // Hapus komentar dari array komentar postingan
+            post.comments.splice(commentIndex, 1);
+
+            await post.save();
+
+            return response.successOK(res, "Comment deleted successfully");
         } catch (e) {
             next(e);
         }

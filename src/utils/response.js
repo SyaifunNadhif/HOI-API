@@ -45,6 +45,15 @@ module.exports = {
 		});
 	},
 
+	// 404 error not found
+	errorNotFound: (res, error, detail = null) => {
+		return res.status(404).json({
+			status: false, 
+			message: error,
+			error: detail
+		});
+	},
+
 	// 422 Unprocessable Entity
 	errorEntity: (res, error, detail = null) => {
 		return res.status(422).json({
