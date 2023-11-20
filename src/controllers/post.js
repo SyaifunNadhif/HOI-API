@@ -43,11 +43,25 @@ module.exports = {
         }
     },
 
+    // myPosts: async (req, res, next) => {
+    //     try {
+    //         const myposts = await Post.find({ postedBy: req.user.id })
+    //             .populate('postedBy', '_id name email')
+    //             .exec();
+    //         return response.successOK(res, 'Your posts retrieved successfully', myposts);
+    //     } catch (e) {
+    //         next(e);
+    //     }
+    // },
+
     myPosts: async (req, res, next) => {
         try {
-            const myposts = await Post.find({ postedBy: req.user.id })
+            const { user } = req;
+            // Cari postingan berdasarkan ID pengguna
+            const myposts = await Post.find({ postedBy: user.id })
                 .populate('postedBy', '_id name email')
                 .exec();
+
             return response.successOK(res, 'Your posts retrieved successfully', myposts);
         } catch (e) {
             next(e);
@@ -57,7 +71,7 @@ module.exports = {
     allPost: async (req, res, next) => {
         try{
             const posts = await Post.find().populate("postedBy", "_id name email");
-
+            
             return response.successOK(res, "All posts retrieved successfully", posts);
         }catch (e){
             next(e);
@@ -87,6 +101,7 @@ module.exports = {
 
             // Cari postingan berdasarkan ID
             const post = await Post.findById(postId);
+            
 
             if (!post) {
                 return response.errorUnauthorized(res, "Post not found");
@@ -190,41 +205,26 @@ module.exports = {
         }
     },
 
-    deleteComment: async (req, res, next) => {
+    deleteMyPost: async (req, res, next) => {
         try {
-            const { postId, commentId } = req.params;
-            const { user } = req;
-
-            // Cari postingan berdasarkan ID
-            const post = await Post.findById(postId);
-
+            const post = await Post.findOne({ _id: req.params.postId }).populate('postedBy', '_id').exec();
+    
             if (!post) {
-                return response.errorNotFound(res, "Post not found");
+                return response.errorNotFound(res, 'Post not found');
             }
-
-            // Temukan indeks komentar yang akan dihapus
-            const commentIndex = post.comments.findIndex(comment => comment._id.toString() === commentId);
-
-            if (commentIndex === -1) {
-                return response.errorNotFound(res, "Comment not found");
+    
+            if (post.postedBy._id.toString() !== req.user.id.toString()) {
+                return response.errorUnauthorized(res, 'You are not authorized to delete this post');
             }
-
-            // Periksa apakah pengguna yang mencoba menghapus komentar adalah pemilik postingan atau pemilik komentar
-            if (post.postedBy.toString() !== user._id.toString() &&
-                post.comments[commentIndex].postedBy.toString() !== user._id.toString()) {
-                return response.errorUnauthorized(res, "You are not authorized to delete this comment");
-            }
-
-            // Hapus komentar dari array komentar postingan
-            post.comments.splice(commentIndex, 1);
-
-            await post.save();
-
-            return response.successOK(res, "Comment deleted successfully");
+    
+            await post.deleteOne(); // Menggunakan deleteOne() untuk menghapus
+    
+            return response.successOK(res, 'Post deleted successfully');
         } catch (e) {
             next(e);
         }
     },
-      
+    
+ 
 }
 
