@@ -9,6 +9,7 @@ router.get('/mypost', middlewares.protected, post.myPosts);
 router.post('/likepost/:postId', middlewares.protected, post.likeUnlikePost);
 router.post('/comment/:postId', middlewares.protected, post.createCommentPost);
 router.get('/detail/:postId', post.getDetailPost);
-router.get('/delpost/:postId', middlewares.protected, post.deleteMyPost);
+router.get('/delpost/:postId', middlewares.protected, post.deletePost);
+router.get('/deletecomment/:postId/:commentId', middlewares.protected, post.deleteComment);
 
 module.exports = router;
