@@ -1,6 +1,8 @@
-const response = require("../utils/response");
+const response = require('../utils/response');
 const {User} = require('../db/models/'); 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const {JWT_SECRET_KEY} = require('../config/key');
 
 module.exports = {
     getHello: async (req, res, next) => {
@@ -66,16 +68,36 @@ module.exports = {
                 return response.errorBadRequest(res, "Invalid credentials!", "Invalid Email or Password");
             }
             
-            const data = {
+            const payload = {
                 id: user._id,
                 name: user.name,
                 email: user.email
             };
+
+            const token = await jwt.sign(payload, JWT_SECRET_KEY);
     
-            return response.successOK(res, 'Login successful', data);
+            return res.status(200).json({
+                status: true,
+                message: 'login success!',
+                data: {
+                    token: token
+                }
+            });
         } catch (e) {
             next(e);
         }
-    }
+    },
+
+    whoami: async (req, res, next) => {
+        try {
+            return res.status(200).json({
+                status: true,
+                message: 'fetch user success!',
+                data: req.user
+            });
+        } catch (e) {
+            next(e);
+        }
+    },
     
 };

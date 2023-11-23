@@ -1,0 +1,9 @@
+"data" : {
+    "id": "654069685024b2f364ef0f4b",
+    "name": "nana",
+    "email": "nana@gmail.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1NDA2OTY4NTAyNGIyZjM2NGVmMGY0YiIsIm5hbWUiOiJuYW5hIiwiZW1haWwiOiJuYW5hQGdtYWlsLmNvbSIsImlhdCI6MTY5OTMxODQ4OH0.2CIwUMPk8jTrtBzGuhRtEff64t5IpfKoUXLVTEakXTg"
+},
+
+
+
