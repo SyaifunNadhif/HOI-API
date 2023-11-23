@@ -149,7 +149,6 @@ module.exports = {
         }
     },
 
-
     getDetailPost: async (req, res, next) => {
         try {
             const { postId } = req.params;
@@ -216,6 +215,77 @@ module.exports = {
             return response.successOK(res, 'Comment deleted successfully');
         } catch (e) {
             console.error(error);
+            next(e);
+        }
+    },
+
+    create: async (req, res, next) => {
+        try {
+            const {category, caption, post} = req.body;
+            if(!category || !caption){
+                return response.errorEntity(res, "Invalid credentials!", "Please add all the fields");
+            }
+
+            if(!post || !Array.isArray(post) || post.length === 0){
+                return response.errorEntity(res, "Invalid credentials!", "Please add at least one photo or video");
+            }
+
+            // Mengecek tipe data dan ukuran setiap elemen di post
+            for(let i = 0; i < post.length; i++){
+                let element = post[i];
+                // Jika elemen adalah string, maka harus berupa URL yang valid
+                if(typeof element === "string"){
+                    if(!isValidURL(element)){
+                        return response.errorEntity(res, "Invalid credentials!", `Please provide a valid URL for photo or video at index ${i}`);
+                    }
+                }
+                // Jika elemen adalah object, maka harus memiliki properti url yang valid dan properti lain yang opsional
+                else if(typeof element === "object"){
+                    if(!element.url || !isValidURL(element.url)){
+                        return response.errorEntity(res, "Invalid credentials!", `Please provide a valid URL for photo or video at index ${i}`);
+                    }
+                    // Mengecek ukuran file jika ada
+                    if(element.size && element.size > MAX_FILE_SIZE){
+                        return response.errorEntity(res, "Invalid credentials!", `Please provide a photo or video with size less than ${MAX_FILE_SIZE} bytes at index ${i}`);
+                    }
+                }
+                // Jika elemen bukan string atau object, maka invalid
+                else{
+                    return response.errorEntity(res, "Invalid credentials!", `Please provide a string or object for photo or video at index ${i}`);
+                }
+            }
+
+            const { id, name, email } = req.user; 
+            
+            const newPost = new Post({
+                category,
+                caption,
+                post,
+                postedBy: {
+                    _id: id,
+                    name: name,
+                    email: email,
+                }
+            });
+
+            await newPost.save();
+
+            // Memasukkan informasi pengguna dalam objek respons
+            const responsePost = {
+                category: newPost.category,
+                caption: newPost.caption,
+                post: newPost.post,
+                postedBy: {
+                    _id: id,
+                    name,
+                    email,
+                },
+                _id: newPost._id,
+                __v: newPost.__v,
+            };
+
+        return response.successOK(res, "Post created successfully", responsePost);
+        } catch (e) {
             next(e);
         }
     },
