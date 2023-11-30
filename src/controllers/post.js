@@ -152,6 +152,7 @@ module.exports = {
     getDetailPost: async (req, res, next) => {
         try {
             const { postId } = req.params;
+            console.log(postId);
 
             // Cari postingan berdasarkan ID dan populasi informasi pengguna yang mempostingnya
             const post = await Post.findById(postId).populate('postedBy', '_id name email');
