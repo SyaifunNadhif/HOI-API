@@ -1,14 +1,29 @@
 const response = require('../utils/response');
-const {Post} = require('../db/models/'); 
+const {Post} = require('../db/models/');
+const timeago = require('timeago.js');
+
 
 
 module.exports = {
     allPost: async (req, res, next) => {
-        try{
+        try {
             const posts = await Post.find().populate("postedBy", "_id name email");
-            
-            return response.successOK(res, "All posts retrieved successfully", posts);
-        }catch (e){
+
+            // Format waktu menggunakan timeago
+            const postsWithRelativeTime = posts.map(post => {
+                const createdAt = post.createdAt;
+
+                // Hitung selisih waktu antara sekarang dan waktu pembuatan postingan
+                const relativeTime = timeago.format(createdAt, 'en_short');
+                console.log(relativeTime);
+                // Tambahkan atribut baru ke postingan
+                post.relativeTime = relativeTime;
+
+                return post;
+            });
+
+            return response.successOK(res, "All posts retrieved successfully", postsWithRelativeTime);
+        } catch (e) {
             next(e);
         }
     },
@@ -152,15 +167,22 @@ module.exports = {
     getDetailPost: async (req, res, next) => {
         try {
             const { postId } = req.params;
-            console.log(postId);
 
             // Cari postingan berdasarkan ID dan populasi informasi pengguna yang mempostingnya
             const post = await Post.findById(postId).populate('postedBy', '_id name email');
-
+    
             if (!post) {
                 return response.errorBadRequest(res, "Post not found", null);
             }
-
+    
+            // Format waktu menggunakan timeago
+            const createdAt = post.createdAt;
+            const relativeTime = timeago.format(createdAt, 'en_short');
+            console.log(relativeTime);
+    
+            // Tambahkan atribut baru ke postingan
+            post.relativeTime = relativeTime;
+    
             return response.successOK(res, "Post details retrieved successfully", post);
         } catch (e) {
             next(e);
