@@ -1,4 +1,4 @@
-const imagekit = require('../utils/imagekit');
+const imagekit = require('../utils/imageKit');
 const crypto = require("crypto");
 const path = require("path");
 
