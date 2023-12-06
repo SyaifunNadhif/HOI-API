@@ -177,7 +177,7 @@ module.exports = {
           }
 
           // Kembalikan respons sukses bersama data pengguna yang telah diupdate
-          return response.successOK(res, 'Avatar updated successfully', updatedUser);
+          return response.successOK(res, 'Avatar updated successfully', { avatar: imageUrl });
       } catch (error) {
           next(error);
       }
