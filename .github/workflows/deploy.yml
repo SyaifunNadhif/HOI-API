@@ -36,4 +36,6 @@ jobs:
           port: 22
           script: |
             echo ${{ secrets.TOTALINDO_SSH_PASSWORD }} | sudo -S docker pull widhofaisal/backend-hoi-api:latest
+            echo ${{ secrets.TOTALINDO_SSH_PASSWORD }} | sudo -S docker stop container_backend_hoi-api
+            echo ${{ secrets.TOTALINDO_SSH_PASSWORD }} | sudo -S docker rm -v container_backend_hoi-api
             echo ${{ secrets.TOTALINDO_SSH_PASSWORD }} | sudo -S docker run -d -it -p 5000:5000 --name container_backend_hoi-api widhofaisal/backend-hoi-api:latest
