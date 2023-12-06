@@ -1,5 +1,6 @@
 const response = require('../utils/response');
-const {User, Post} = require('../db/models/'); 
+const {User, Post} = require('../db/models/');
+
 
 module.exports = {
     user: async (req, res, next) => {
@@ -158,4 +159,27 @@ module.exports = {
         next(error);
       }
     },
+
+    updateAvatar: async (req, res, next) => {
+      try {
+          const { user } = req;
+          const { imageUrl } = req.uploadFile;
+
+          // Update avatar pengguna dalam database
+          const updatedUser = await User.findByIdAndUpdate(
+              user.id,
+              { avatar: imageUrl },
+              { new: true } // Mengembalikan dokumen yang telah diupdate
+          );
+
+          if (!updatedUser) {
+              return response.errorNotFound(res, 'User not found');
+          }
+
+          // Kembalikan respons sukses bersama data pengguna yang telah diupdate
+          return response.successOK(res, 'Avatar updated successfully', updatedUser);
+      } catch (error) {
+          next(error);
+      }
+  },
 }

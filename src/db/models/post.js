@@ -10,14 +10,14 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    photo: {
-        type: String,
-        default: "no photo",
-    },
-    // post: [{
-    //     type: mongoose.Schema.Types.Mixed,
-    //     required: true,
-    // }],
+    // photo: {
+    //    type: String,
+    //    default: "no photo",
+    // },
+    post: [{
+        type: mongoose.Schema.Types.Mixed,
+        required: true,
+    }],
     likes: [{
         type: ObjectId,
         ref: "User",
@@ -32,8 +32,9 @@ const postSchema = new mongoose.Schema({
     postedBy: {
         type: ObjectId,
         ref: "User",
-    },
-});
+    },    
+
+}, { timestamps: true });
 
 const Post = mongoose.model("Post", postSchema);
 module.exports = Post;

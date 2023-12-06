@@ -1,6 +1,6 @@
 
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET_KEY } = require('../config/key');
+const { JWT_SECRET_KEY } = process.env;
 const {User} = require('../db/models/'); // Pastikan Anda mengimpor model User
 
 module.exports = {
