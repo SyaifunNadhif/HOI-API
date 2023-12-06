@@ -16,14 +16,12 @@ const userSchema = new mongoose.Schema({
     },
     avatar: {
         type: String,
-        default: "no avatar",
+        required: true,
     },
     userType: {
         type: String,
         default: "basic",
     },
-    resetToken: String,
-    expireToken: Date,
     followers: [{
         type: ObjectId,
         ref: "User"

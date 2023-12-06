@@ -10,14 +10,14 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    photo: {
-        type: String,
-        default: "no photo",
-    },
-    // post: [{
-    //     type: mongoose.Schema.Types.Mixed,
-    //     required: true,
-    // }],
+    // photo: {
+    //    type: String,
+    //    default: "no photo",
+    // },
+    post: [{
+        type: mongoose.Schema.Types.Mixed,
+        required: true,
+    }],
     likes: [{
         type: ObjectId,
         ref: "User",

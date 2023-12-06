@@ -2,7 +2,7 @@ const response = require('../utils/response');
 const {User} = require('../db/models/'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const {JWT_SECRET_KEY} = require('../config/key');
+const {JWT_SECRET_KEY} = process.env;
 
 module.exports = {
     getHello: async (req, res, next) => {
