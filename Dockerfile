@@ -4,14 +4,16 @@ FROM node:16
 # Create app directory
 WORKDIR /app
 
+ARG NODE_ENV=development
+ENV NODE_ENV=${NODE_ENV}
+
 # Copy the package.json and package-lock.json files to /app 
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-ARG NODE_ENV=development
-ENV NODE_ENV=${NODE_ENV}
+
 
 # Copy the rest of the application code to /app
 COPY . /app
