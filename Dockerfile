@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+ARG NODE_ENV=development
+ENV NODE_ENV=${NODE_ENV}
+
 # Copy the rest of the application code to /app
 COPY . /app
 
@@ -18,3 +21,4 @@ EXPOSE 5000
 
 # Start the server
 CMD ["npm","start"]
+
