@@ -1,11 +1,11 @@
 const response = require('../utils/response');
 const {User} = require('../db/models/'); 
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {JWT_SECRET_KEY} = process.env;
 
 module.exports = {
-    getHello: async (req, res, next) => {
+    getHello: (req, res, next) => {
         try {
             const data = {
                 "nama": "nadhif",

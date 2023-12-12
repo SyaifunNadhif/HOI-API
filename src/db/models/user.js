@@ -16,11 +16,15 @@ const userSchema = new mongoose.Schema({
     },
     avatar: {
         type: String,
-        required: true,
+        required: false,
     },
-    userType: {
+    user_type: {
         type: String,
         default: "basic",
+    },
+    email_verified: {
+        type: Boolean,
+        default: false,
     },
     followers: [{
         type: ObjectId,

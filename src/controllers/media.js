@@ -81,5 +81,56 @@ module.exports = {
 		} catch (error) {
 			return next(error);
 		}
-	}
+	},
+
+    uploadMountPhotos: async (req, res, next) => {
+        try {
+            const name = req.body.name; // Sesuaikan dengan nama field di form Anda
+            const photos = req.files.map(file => ({ buffer: file.buffer }));
+        
+            const uploadedPhotos = await Promise.all(
+                photos.map(async photo => {
+                const imageString = photo.buffer.toString('base64');
+                const uploadFile = await imagekit.upload({
+                    fileName: `${name}_${Date.now()}`,
+                    file: imageString,
+                    folder: 'mounts',
+                    useUniqueFileName: false,
+                    overwriteFile: true,
+                });
+                return { url: uploadFile.url };
+                })
+            );
+        
+            // Menambahkan data foto yang diunggah ke objek req untuk digunakan di controller
+            req.uploadedPhotos = uploadedPhotos;
+        
+            next();
+        } catch (e) {
+            next(e);
+        }
+    },
+
+    createProfile: async (req, res) => {
+        try {
+          const { name, email, bio } = req.body;
+          const photo = req.file;
+      
+          const uploadResponse = await imagekit.upload({
+            file: photo.buffer.toString('base64'),
+            fileName: photo.originalname,
+          });
+      
+          const photoUrl = uploadResponse.url;
+      
+          // Lakukan apa yang diperlukan dengan data dan URL foto
+          // (Contoh: menyimpan data ke database)
+      
+          res.json({ success: true, photoUrl, name, email, bio });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ success: false, error: 'Internal Server Error' });
+        }
+    },
+    
 };

@@ -7,7 +7,7 @@ const timeago = require('timeago.js');
 module.exports = {
     allPost: async (req, res, next) => {
         try {
-            const posts = await Post.find().populate("postedBy", "_id name email");
+            const posts = await Post.find().populate("postedBy", "_id name avatar");
 
             // Format waktu menggunakan timeago
             const postsWithRelativeTime = posts.map(post => {

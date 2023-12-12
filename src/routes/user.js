@@ -12,5 +12,9 @@ router.get('/search', user.searchUser);
 router.get('/userprofile/:userId', user.getUserProfile);
 router.post('/updateavatar/', upload.single("media"),  jwt.protected, media.uploadAvatar, user.updateAvatar);
 
-router.post('/imagekit/upload', upload.single("media"), media.imagekitUpload)
+router.post('/imagekit/upload', upload.single("media"), media.imagekitUpload);
+
+
+router.post('/createProfile', upload.single('photo'), media.createProfile);
+
 module.exports = router;

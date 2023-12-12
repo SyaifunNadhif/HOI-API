@@ -1,7 +1,6 @@
-
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET_KEY } = process.env;
-const {User} = require('../db/models/'); // Pastikan Anda mengimpor model User
+const {User} = require('../db/models/'); 
 
 module.exports = {
     protected: async (req, res, next) => {
@@ -34,16 +33,24 @@ module.exports = {
                 });
             }
             
-
             req.user = {
                 id: userInstance.id,
                 name: userInstance.name,
                 email: userInstance.email,
                 avatar: userInstance.avatar,
-                userType: userInstance.userType,
+                user_type: userInstance.user_type,
                 followers: userInstance.followers,
                 following: userInstance.following,
             };
+
+            // // Cek apakah pengguna adalah admin
+            // if (req.user.userType !== 'admin') {
+            //     return res.status(403).json({
+            //         status: false,
+            //         message: 'You do not have permission to access this resource!',
+            //         data: null
+            //     });
+            // }
 
             next();
         } catch (err) {
