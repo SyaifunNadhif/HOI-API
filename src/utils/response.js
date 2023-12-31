@@ -45,6 +45,14 @@ module.exports = {
 		});
 	},
 
+	errorPermission: (res, error, detail = null) => {
+		return res.status(403).json({
+			status: false, 
+			massage: error,
+			error: detail
+		});
+	},
+
 	// 404 error not found
 	errorNotFound: (res, error, detail = null) => {
 		return res.status(404).json({

@@ -3,8 +3,12 @@ const express = require('express');
 const router = require('./routes');
 const app = express();
 const mongoose = require('mongoose');
+const morgan = require('morgan');
+const cors = require("cors");
+
 const PORT = process.env.PORT || 8000;
 
+app.use(cors());
 
 // Ambil URI MongoDB dari berkas .env
 const mongodbURI = process.env.MONGODB_URI;
@@ -49,5 +53,10 @@ if(process.env.NODE_ENV=="production"){
         res.sendFile(path.resolve(__dirname,'client','build','index.html'))
     })
 }
+
+
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev')); // Menampilkan log di konsol dalam format dev
+
 
 app.listen(PORT, () => console.log(`Api Running at http://localhost:${PORT}`));

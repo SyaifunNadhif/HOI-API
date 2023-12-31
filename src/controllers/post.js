@@ -1,13 +1,14 @@
 const response = require('../utils/response');
 const {Post} = require('../db/models/');
 const timeago = require('timeago.js');
+const imagekit = require('../utils/imageKit');
 
 
 
 module.exports = {
     allPost: async (req, res, next) => {
         try {
-            const posts = await Post.find().populate("postedBy", "_id name email");
+            const posts = await Post.find().populate("postedBy", "_id name avatar");
 
             // Format waktu menggunakan timeago
             const postsWithRelativeTime = posts.map(post => {
@@ -47,15 +48,24 @@ module.exports = {
     createPost: async (req, res, next) => {
         try {
             const {category, caption} = req.body;
+            let photo = req.file;
             if(!category || !caption){
                 return response.errorEntity(res, "Invalid credentials!", "Please add all the fields");
             }
+
+            const uploadResponse = await imagekit.upload({
+                file: photo.buffer.toString('base64'),
+                fileName: photo.originalname,
+              });
+          
+            photo = uploadResponse.url;
 
             const { id, name, email } = req.user; 
             
             const newPost = new Post({
                 category,
                 caption,
+                photo,
                 postedBy: {
                     _id: id,
                     name: name,
@@ -69,6 +79,7 @@ module.exports = {
             const responsePost = {
                 category: newPost.category,
                 caption: newPost.caption,
+                photo: newPost.photo,
                 postedBy: {
                     _id: id,
                     name,

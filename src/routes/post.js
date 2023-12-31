@@ -1,8 +1,11 @@
 const router = require("express").Router();
+const multer = require("multer");
 const {post} = require('../controllers');
 const middlewares = require('../middlewares/requireLogin');
+const upload = multer();
 
 router.post('/', middlewares.protected, post.createPost);
+router.post('/createpost', middlewares.protected, upload.single('photo'), post.createPost);
 router.get('/allpost', post.allPost);
 router.get('/category/:category', post.allPostCategory)
 router.get('/mypost', middlewares.protected, post.myPosts);
