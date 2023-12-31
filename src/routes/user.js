@@ -8,6 +8,7 @@ const upload = multer();
 router.post('/', user.user);
 router.post('/follow/:userIdToFollow', jwt.protected, user.follow);
 router.post('/unfollow/:userIdToUnfollow', jwt.protected, user.unfollow);
+router.get('/myprofile', jwt.protected, user.myProfile);
 router.get('/search', user.searchUser);
 router.get('/userprofile/:userId', user.getUserProfile);
 router.post('/updateavatar/', upload.single("media"),  jwt.protected, media.uploadAvatar, user.updateAvatar);

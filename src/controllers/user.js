@@ -126,37 +126,41 @@ module.exports = {
 
     getUserProfile: async (req, res, next) => {
       try {
-        const { userId } = req.params;
-
-        // Cari pengguna berdasarkan ID
-        const user = await User.findById(userId).select('-password');
-
-        if (!user) {
-            return response.errorNotFound(res, "User not found", null);
-        }
-
-        // Hitung jumlah pengikut dan yang diikuti
-        const followersCount = user.followers.length;
-        const followingCount = user.following.length;
-
-        // Mendapatkan postingan pengguna
-        const userPosts = await Post.find({ postedBy: userId });
-
-        // Objek respons yang mencakup informasi yang ingin ditampilkan
-        const userProfile = {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            avatar: user.avatar,
-            userType: user.userType,
-            followersCount,
-            followingCount,
-            posts: userPosts,
-        };
+          const { userId } = req.params;
   
-        return response.successOK(res, 'User profile retrieved successfully', userProfile);
+          // Cari pengguna berdasarkan ID
+          const user = await User.findById(userId).select('-password');
+  
+          if (!user) {
+              return response.errorNotFound(res, "User not found", null);
+          }
+  
+          // Hitung jumlah pengikut dan yang diikuti
+          const followersCount = user.followers.length;
+          const followingCount = user.following.length;
+  
+          // Mendapatkan postingan pengguna
+          const userPosts = await Post.find({ postedBy: userId });
+  
+          // Hitung total postingan
+          const postsCount = userPosts.length;
+          console.log(postsCount);
+  
+          // Objek respons yang mencakup informasi yang ingin ditampilkan
+          const userProfile = {
+              _id: user._id,
+              name: user.name,
+              email: user.email,
+              avatar: user.avatar,
+              followersCount,
+              followingCount,
+              postsCount,  // Tambahkan jumlah total postingan ke objek respons
+              posts: userPosts,
+          };
+  
+          return response.successOK(res, 'User profile retrieved successfully', userProfile);
       } catch (error) {
-        next(error);
+          next(error);
       }
     },
 
@@ -181,5 +185,44 @@ module.exports = {
       } catch (error) {
           next(error);
       }
-  } ,
+    },
+
+    myProfile: async (req, res, next) => {
+      try {
+          const userId = req.user.id; // Menggunakan id pengguna dari token JWT
+  
+          // Cari pengguna berdasarkan ID
+          const user = await User.findById(userId).select('-password');
+  
+          if (!user) {
+              return response.errorNotFound(res, "User not found", null);
+          }
+  
+          // Hitung jumlah pengikut dan yang diikuti
+          const followersCount = user.followers.length;
+          const followingCount = user.following.length;
+  
+          // Mendapatkan postingan pengguna
+          const userPosts = await Post.find({ postedBy: userId });
+  
+          // Hitung total postingan
+          const postsCount = userPosts.length;
+  
+          // Objek respons yang mencakup informasi yang ingin ditampilkan
+          const userProfile = {
+              _id: user._id,
+              name: user.name,
+              email: user.email,
+              avatar: user.avatar,
+              followersCount,
+              followingCount,
+              postsCount,
+              posts: userPosts,
+          };
+  
+          return response.successOK(res, 'User profile retrieved successfully', userProfile);
+      } catch (error) {
+          next(error);
+      }
+    }
 }
