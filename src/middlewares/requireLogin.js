@@ -16,11 +16,6 @@ module.exports = {
             }
 
             const data = await jwt.verify(authorization, JWT_SECRET_KEY);
-            
-            // Ambil data pengguna dari database
-            // const user = await User.findById(data.id).select('-password').lean(false);
-
-          
 
             const user = await User.findById(data.id).select('-password');
             const userInstance = new User(user); // Membuat instance model User
@@ -42,15 +37,6 @@ module.exports = {
                 followers: userInstance.followers,
                 following: userInstance.following,
             };
-
-            // // Cek apakah pengguna adalah admin
-            // if (req.user.userType !== 'admin') {
-            //     return res.status(403).json({
-            //         status: false,
-            //         message: 'You do not have permission to access this resource!',
-            //         data: null
-            //     });
-            // }
 
             next();
         } catch (err) {
