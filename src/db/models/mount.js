@@ -18,14 +18,10 @@ const mountSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    photos: {
-        type: String,
-        default: 'no foto'
-    },
-    // photos: {
-    //     type: [String],  // Array of Strings
-    //     default: ['no foto'],
-    // },
+    photo: [{
+        type: mongoose.Schema.Types.Mixed,
+        required: true,
+    }],
     basecamp: {
         type: String,
         required: true,

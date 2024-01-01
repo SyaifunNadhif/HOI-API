@@ -2,6 +2,12 @@ const response = require('../utils/response');
 const {Post} = require('../db/models/');
 const timeago = require('timeago.js');
 const imagekit = require('../utils/imageKit');
+const tinify = require('tinify');
+const Jimp = require('jimp');
+
+// Set your TinyPNG/TinyJPG API key
+tinify.key = 'KF9Prl0xC47TJgN6h35WYtbx5Qc2Ps3b';
+
 
 
 
@@ -36,7 +42,7 @@ module.exports = {
 
             // Mengambil semua postingan dengan kategori yang sesuai
             const posts = await Post.find({ category })
-                .populate('postedBy', '_id name email')
+                .populate('postedBy', '_id name avatar')
                 .exec();
             
             return response.successOK(res, `All posts in the "${category}" category retrieved successfully`, posts);
@@ -47,35 +53,42 @@ module.exports = {
 
     createPost: async (req, res, next) => {
         try {
-            const {category, caption} = req.body;
+            const { category, caption } = req.body;
             let photo = req.file;
-            if(!category || !caption){
+            if (!category || !caption) {
                 return response.errorEntity(res, "Invalid credentials!", "Please add all the fields");
             }
-
-            const uploadResponse = await imagekit.upload({
-                file: photo.buffer.toString('base64'),
-                fileName: photo.originalname,
-              });
-          
-            photo = uploadResponse.url;
-
-            const { id, name, email } = req.user; 
+    
+            // Resize gambar
+            const resizedImageBuffer = await Jimp.read(photo.buffer)
+            .then(image => image.resize(800, Jimp.AUTO).getBufferAsync(Jimp.AUTO));
+        
+            // Kompresi agresif menggunakan Tinify secara asinkron
+            const tinifyBuffer = await tinify.fromBuffer(resizedImageBuffer).toBuffer();
             
+            // Proses unggah gambar ke ImageKit
+            const uploadResponse = await imagekit.upload({
+                file: tinifyBuffer.toString('base64'),
+                fileName: photo.originalname,
+            });
+            
+            photo = uploadResponse.url;
+    
+            const { id, name, email } = req.user;
+    
             const newPost = new Post({
                 category,
                 caption,
                 photo,
                 postedBy: {
                     _id: id,
-                    name: name,
-                    email: email,
-                }
+                    name,
+                    email,
+                },
             });
-
+    
             await newPost.save();
-
-            // Memasukkan informasi pengguna dalam objek respons
+    
             const responsePost = {
                 category: newPost.category,
                 caption: newPost.caption,
@@ -88,8 +101,8 @@ module.exports = {
                 _id: newPost._id,
                 __v: newPost.__v,
             };
-
-        return response.successOK(res, "Post created successfully", responsePost);
+    
+            return response.successOK(res, "Post created successfully", responsePost);
         } catch (e) {
             next(e);
         }
