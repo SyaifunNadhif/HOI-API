@@ -140,7 +140,7 @@ module.exports = {
           const followingCount = user.following.length;
   
           // Mendapatkan postingan pengguna
-          const userPosts = await Post.find({ postedBy: userId });
+          const userPosts = await Post.find({ postedBy: userId }).sort({ createdAt: -1 });
   
           // Hitung total postingan
           const postsCount = userPosts.length;
@@ -202,8 +202,8 @@ module.exports = {
           const followersCount = user.followers.length;
           const followingCount = user.following.length;
   
-          // Mendapatkan postingan pengguna
-          const userPosts = await Post.find({ postedBy: userId });
+          // Mendapatkan postingan pengguna, diurutkan berdasarkan createdAt secara menurun
+          const userPosts = await Post.find({ postedBy: userId }).sort({ createdAt: -1 });
   
           // Hitung total postingan
           const postsCount = userPosts.length;
@@ -224,5 +224,6 @@ module.exports = {
       } catch (error) {
           next(error);
       }
-    }
+  }
+  
 }
