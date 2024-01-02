@@ -245,9 +245,9 @@ module.exports = {
     getDetailPost: async (req, res, next) => {
         try {
             const { postId } = req.params;
-
+    
             // Cari postingan berdasarkan ID dan populasi informasi pengguna yang mempostingnya
-            const post = await Post.findById(postId).populate('postedBy', '_id name email');
+            const post = await Post.findById(postId).populate('postedBy', '_id name avatar').populate('comments.postedBy', '_id name avatar');
     
             if (!post) {
                 return response.errorBadRequest(res, "Post not found", null);
@@ -260,8 +260,39 @@ module.exports = {
     
             // Tambahkan atribut baru ke postingan
             post.relativeTime = relativeTime;
+
+            const payload = ({
+                _id: post._id,
+                category: post.category,
+                caption: post.caption,
+                time: post.relativeTime,
+                photo: post.photo,
+                likes: post.likes,
+                postedBy: post.postedBy
+                    ? {
+                          _id: post.postedBy._id,
+                          name: post.postedBy.name,
+                          avatar: post.postedBy.avatar,
+                      }
+                    : null,
+                comments: post.comments.map(comment => ({
+                    _id: comment._id,
+                    text: comment.text,
+                    postedBy: comment.postedBy,
+                    user: comment.user
+                        ? {
+                              _id: comment.user._id,
+                              name: comment.user.name,
+                              avatar: comment.user.avatar,
+                          }
+                        : null,
+                })),
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt,
+                __v: post.__v,
+            });
     
-            return response.successOK(res, "Post details retrieved successfully", post);
+            return response.successOK(res, "Post details retrieved successfully", payload);
         } catch (e) {
             next(e);
         }
