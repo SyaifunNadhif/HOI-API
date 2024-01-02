@@ -1,5 +1,5 @@
 const response = require('../utils/response');
-const {Post} = require('../db/models/');
+const {Post, User} = require('../db/models/');
 const timeago = require('timeago.js');
 const imagekit = require('../utils/imageKit');
 const tinify = require('tinify');
@@ -18,23 +18,76 @@ module.exports = {
             const posts = await Post.find().sort({ createdAt: -1 }).populate("postedBy", "_id name avatar");
     
             // Format waktu menggunakan timeago
-            const postsWithRelativeTime = posts.map(post => {
+            const payloadAllpost = await Promise.all(posts.map(async (post) => {
                 const createdAt = post.createdAt;
     
                 // Hitung selisih waktu antara sekarang dan waktu pembuatan postingan
                 const relativeTime = timeago.format(createdAt, 'en_short');
-                
+    
                 // Tambahkan atribut baru ke postingan
                 post.relativeTime = relativeTime;
     
-                return post;
-            });
+                // Ambil informasi pengguna dari model User untuk setiap komentar
+                post.comments = await Promise.all(post.comments.map(async (comment) => {
+                    // Ambil informasi pengguna dari model User berdasarkan ID
+                    const user = await User.findById(comment.postedBy);
     
-            return response.successOK(res, "All posts retrieved successfully", postsWithRelativeTime);
+                    // Update objek comment dengan informasi pengguna jika user ditemukan
+                    if (user) {
+                        comment.user = {
+                            _id: user._id,
+                            name: user.name,
+                            avatar: user.avatar,
+                        };
+                    }
+
+                    // console.log(comment.user);
+    
+                    return comment;
+                }));
+
+                const payload = ({
+                    _id: post._id,
+                    category: post.category,
+                    caption: post.caption,
+                    time: post.relativeTime,
+                    photo: post.photo,
+                    likes: post.likes,
+                    postedBy: post.postedBy
+                        ? {
+                              _id: post.postedBy._id,
+                              name: post.postedBy.name,
+                              avatar: post.postedBy.avatar,
+                          }
+                        : null,
+                    comments: post.comments.map(comment => ({
+                        _id: comment._id,
+                        text: comment.text,
+                        postedBy: comment.postedBy,
+                        user: comment.user
+                            ? {
+                                  _id: comment.user._id,
+                                  name: comment.user.name,
+                                  avatar: comment.user.avatar,
+                              }
+                            : null,
+                    })),
+                    createdAt: post.createdAt,
+                    updatedAt: post.updatedAt,
+                    __v: post.__v,
+                });
+    
+                return payload;
+            }));
+            
+            
+    
+            return response.successOK(res, "All posts retrieved successfully", payloadAllpost);
         } catch (e) {
             next(e);
         }
     },
+    
 
     allPostCategory: async (req, res, next) => {
         try {
