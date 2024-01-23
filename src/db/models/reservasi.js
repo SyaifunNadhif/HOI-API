@@ -2,28 +2,47 @@ const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Schema.Types;
 
 const reservationSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
+  user_id: {
+    type: ObjectId,
     ref: 'User',
     required: true,
   },
-  mount: {
-    type: mongoose.Schema.Types.ObjectId,
+  mount_id: {
+    type: ObjectId,
     ref: 'Mount',
     required: true,
   },
-  check_in: {
-    type: Date,
-    required: true,
-  },
-  check_out: {
-    type: Date,
+  total: {
+    type: Number,
     required: true,
   },
   jumlah_pendaki: {
     type: Number,
     required: true,
   },
+  tanggal_pendakian: {
+    type: String,
+    required: true,
+  },
+  durasi_pendakian: {
+    type: String,
+    required: true,
+  },
+    // check_in: {
+  //   type: Date,
+  //   required: false,
+  // },
+  // check_out: {
+  //   type: Date,
+  //   required: false,
+  // },
+  anggota_pendaki: [
+    {
+      type: ObjectId,
+      ref: 'User',
+      required: false,
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

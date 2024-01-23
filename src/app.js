@@ -19,7 +19,6 @@ app.use(router);
 // Konfigurasi koneksi MongoDB menggunakan Mongoose
 mongoose.connect(mongodbURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-
 // Handling event koneksi MongoDB
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));

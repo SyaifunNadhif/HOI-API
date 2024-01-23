@@ -10,7 +10,7 @@ module.exports = {
 
 	// 201 CREATED
 	successCreated: (res, message, data = null) => {
-		return res.status(200).json({
+		return res.status(201).json({
 			status: true,
 			message: message,
 			data: data

@@ -132,5 +132,42 @@ module.exports = {
           res.status(500).json({ success: false, error: 'Internal Server Error' });
         }
     },
+
+    uploadPhotos: async (req, res, next) => {
+        try {
+            if (!req.get("Content-Type").includes("multipart/form-data")) {
+                return next();
+            }
+    
+            const photoFiles = req.files;
+    
+            // Upload each photo to ImageKit
+            const uploadPromises = photoFiles.map(async (file) => {
+                const imageString = file.buffer.toString("base64");
+                const uploadFile = await imagekit.upload({
+                    fileName: file.originalname,
+                    file: imageString,
+                    folder: "Mount", // Ganti dengan nama folder yang diinginkan
+                    useUniqueFileName: false,
+                    overwriteFile: true,
+                });
+    
+                return {
+                    name: uploadFile.name,
+                    url: uploadFile.url,
+                    type: uploadFile.fileType
+                };
+            });
+    
+            const uploadedPhotos = await Promise.all(uploadPromises);
+            console.log(uploadedPhotos);
+    
+            req.uploadedPhotos = uploadedPhotos;
+    
+            return next();
+        } catch (error) {
+            return next(error);
+        }
+    }
     
 };
