@@ -38,9 +38,8 @@ const reservationSchema = new mongoose.Schema({
   // },
   anggota_pendaki: [
     {
-      type: ObjectId,
-      ref: 'User',
-      required: false,
+      type: String, // code user
+      // ref: 'User',
     },
   ],
   createdAt: {
