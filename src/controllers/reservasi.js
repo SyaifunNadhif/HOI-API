@@ -65,18 +65,37 @@ module.exports = {
             if (!mount) {
                 return res.status(404).json(response.error('Mount not found'));
             }
+
+            const anggotaPendakiData = await Promise.all(reservasi.anggota_pendaki.map(async (code) => {
+                const anggota = await User.findOne({ code });
+                return {
+                    code: anggota.code,
+                    email: anggota.email,
+                    name: anggota.name,
+                    address: anggota.address,
+                    phone: anggota.phone,
+                };
+            }));
     
             // Siapkan payload respons yang mencakup data reservasi, user, dan mount
             const payload = {
+                anggota_pendaki: anggotaPendakiData,
+                durasi_pendakian: reservasi.durasi_pendakian,
                 jumlah_pendaki: reservasi.jumlah_pendaki,
                 tanggal_pendakian: reservasi.tanggal_pendakian,
-                durasi_pendakian: reservasi.durasi_pendakian,
-                anggota_pendaki: reservasi.anggota_pendaki,
-                name: user.name,
-                email: user.email,
-                gunung: mount.name,
-                tiket: mount.ticket_price,
-                basecamp: mount.basecamp
+                total: reservasi.total,
+                userBoking:{
+                    code: user.code,
+                    email: user.email,
+                    name: user.name,
+                    address: user.address,
+                    phone: user.phone
+                },
+                mount : {
+                    gunung: mount.name,
+                    tiket: mount.ticket_price,
+                    basecamp: mount.basecamp
+                }
 
             }
         
@@ -135,56 +154,6 @@ module.exports = {
             next(e);
         }
     },
-
-    // addAnggota: async (req, res, next) => {
-    //     try {
-    //         const id_book = req.params.id_book;
-
-    //         // Cari data reservasi berdasarkan id_book
-    //         const reservasi = await Reservasi.findById(id_book);
-    //         if (!reservasi) {
-    //             return res.status(404).json(response.error('Reservation not found'));
-    //         }
-
-    //         // Dapatkan data user berdasarkan user_id dalam reservasi
-    //         const user = await User.findById(reservasi.user_id);
-    //         if (!user) {
-    //             return res.status(404).json(response.error('User not found'));
-    //         }
-
-    //         // Dapatkan jumlah anggota pendaki yang sudah ada
-    //         const jumlahAnggotaSaatIni = reservasi.anggota_pendaki.length;
-
-    //         // Dapatkan kode anggota baru dari req.body (contoh: ["code_user_1", "code_user_2"])
-    //         const kode_anggota_baru = req.body.kode_anggota_baru;
-
-    //         // Validasi Kode anggota baru
-    //         if (!kode_anggota_baru || !Array.isArray(kode_anggota_baru)) {
-    //             return res.status(400).json(response.error('Invalid array of user codes'));
-    //         }
-
-    //         // Cari pengguna berdasarkan kode
-    //         const usersFound = await User.find({ code: { $in: kode_anggota_baru } });
-
-    //         // Pastikan semua kode anggota baru ada dalam database
-    //         if (usersFound.length !== kode_anggota_baru.length) {
-    //             return res.status(404).json(response.error('One or more user codes not found'));
-    //         }
-
-    //         // Tambahkan kode anggota baru ke dalam array anggota_pendaki
-    //         reservasi.anggota_pendaki.push(...kode_anggota_baru);
-
-    //         // Simpan perubahan ke dalam database
-    //         await reservasi.save();
-
-    //         // Ambil data reservasi setelah perubahan
-    //         const reservasiUpdated = await Reservasi.findById(id_book).populate('anggota_pendaki');
-
-    //         return res.status(200).json(response.successOK('Additional members added successfully', reservasiUpdated));
-    //     } catch (e) {
-    //         next(e);
-    //     }
-    // },
 
     cekUser: async (req, res, next) => {
         try {
