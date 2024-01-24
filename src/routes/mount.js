@@ -18,6 +18,7 @@ const upload = multer({ storage: storage });
 // upload 2 photos mount
 router.post('/addmount/', jwt.protected, upload.array('photo', 2), media.uploadPhotos, mount.createMount);
 router.get('/allmount/', mount.allMount);
+router.get('/detail/:id_mount', mount.detailMount);
 
 // Endpoint untuk membuat data
 // router.post('/create', upload.single('image'), async (req, res) => {

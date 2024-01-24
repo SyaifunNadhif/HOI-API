@@ -43,5 +43,19 @@ module.exports = {
         }
     },
     
+    detailMount: async (req, res, next) => {
+        try {
+            const {id_mount} = req.params;
+            // Dapatkan data mount berdasarkan mount_id dalam reservasi
+            const mount = await Mount.findById(id_mount);
+            if (!mount) {
+                return response.responseError(res, 'mount not found');
+            }
+
+            return response.successOK(res, 'get detail mount', mount);
+        }catch(e){
+            next(e);
+        }
+    }
     
 };
