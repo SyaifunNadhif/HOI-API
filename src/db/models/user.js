@@ -26,7 +26,19 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    phone: {
+        type: String,
+        default: false,
+    },
     address: {
+        type: String,
+        default: false
+    },
+    parent_number: {
+        type: String,
+        default: false
+    },
+    code: {
         type: String,
         default: false
     },
