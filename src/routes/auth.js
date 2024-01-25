@@ -9,5 +9,6 @@ router.post('/register', auth.register);
 router.post('/login', auth.login);
 router.get('/whoami', middlewares.protected ,auth.whoami);
 router.get('/data', jwt.protected, auth.whoami);
+// router.get('/code', auth.generateCode);
 
 module.exports = router;

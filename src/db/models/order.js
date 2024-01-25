@@ -2,28 +2,38 @@ const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Schema.Types;
 
 const orderSchema = new mongoose.Schema({
-  reservation: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Reservation',
-    required: true,
-  },
-  anggota_pendaki: [{
-    username: {
-      type: String,
-      required: true,
+    id_reservasi: {
+        type: ObjectId,
+        ref: 'Reservasi',
+        required: true,
     },
-    // Tambahkan atribut lain sesuai kebutuhan
-  }],
-  metode_pembayaran: {
-    type: String,
-    enum: ['bayar_di_tempat', 'transfer'],
-    required: true,
-  },
-  total_pembayaran: {
-    type: Number,
-    required: true,
-  },
-  // Tambahkan atribut lain sesuai kebutuhan
+    id_user: {
+        type: ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    total: {
+        type: Number,
+        required: true,
+    },
+    check_in: {
+        type: Date,
+        required: true,
+    },
+    check_out: {
+        type: Date,
+        required: true,
+    },
+    status_pembayaran: {
+        type: String,
+        enum: ['pending', 'completed', 'cancelled'],
+        default: 'pending',
+    },
+    metode_pembayaran: {
+        type: String,
+        default: 'onsite',
+        enum: ['onsite'],
+    },
 });
 
 const Order = mongoose.model('Order', orderSchema);

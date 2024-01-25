@@ -1,4 +1,5 @@
 const response = require('../utils/response');
+const code = require('../utils/code');
 const {User} = require('../db/models/'); 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -16,24 +17,32 @@ module.exports = {
             next(e);
         }
     },
-
-    register: async (req, res, next) => {
+    
+    register : async (req, res, next) => {
         try {
             const { name, email, password } = req.body;
     
             if (!name || !email || !password) {
-                return response.errorEntity(res, "Invalid credentials!", "Please add all the fields");
+                return response.errorEntity(res, 'Invalid credentials!', 'Please add all the fields');
             }
     
             const exist = await User.findOne({ email: email });
             if (exist) {
-                return response.errorBadRequest(res, "Invalid credentials!", "User already exists with that email");
+                return response.errorBadRequest(res, 'Invalid credentials!', 'User already exists with that email');
             }
+    
             const hashPassword = await bcrypt.hash(password, 10);
+            
+            
+
+            const codePendaki = await code.generateCode();
+
+    
             const user = new User({
                 name,
                 email,
                 password: hashPassword,
+                code: codePendaki
             });
     
             const savedUser = await user.save();
@@ -41,6 +50,7 @@ module.exports = {
                 id: savedUser._id,
                 name: savedUser.name,
                 email: savedUser.email,
+                code: savedUser.code
             };
             return response.successOK(res, 'Successfully registered', data);
         } catch (e) {
