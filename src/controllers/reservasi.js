@@ -158,6 +158,11 @@ module.exports = {
     cekUser: async (req, res, next) => {
         try {
             const { code } = req.params;
+
+            // code = code.toUpperCase();
+
+            // console.log(code); // Output: PGU-2410
+
     
             // Cek apakah code itu ada di table User
             const user = await User.findOne({ code });
