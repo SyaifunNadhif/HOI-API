@@ -178,7 +178,11 @@ module.exports = {
         } catch (e) {
             next(e);
         }
-    }
+    },
+
+    checkout: async (req, res, next) => {
+        
+    },
     
     
 }

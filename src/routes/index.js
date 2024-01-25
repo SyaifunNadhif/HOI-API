@@ -11,7 +11,7 @@ const regulation = require("./regulation");
 router.get("/", (req, res) => {
 	res.status(200).json({
 		status: true,
-		message: "welcome to History of Indonesia - API",
+		message: "Welcome to API Reservasi Pendakian Gunung Ungaran",
 		data: null
 	});
 });
