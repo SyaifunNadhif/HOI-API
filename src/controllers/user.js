@@ -173,7 +173,8 @@ module.exports = {
           const updatedUser = await User.findByIdAndUpdate(
               user.id,
               { avatar: imageUrl },
-              { new: true } // Mengembalikan dokumen yang telah diupdate
+              { new: true }
+              //mengembalikan dokumen yang telah diupdate
           );
 
           if (!updatedUser) {
@@ -255,5 +256,59 @@ module.exports = {
             next(error);
       }
     },
+
+    updateProfile: async (req, res, next) => {
+      try {
+        const {name, phone, parent_number, address} = req.body;
+        
+        if(!name && !address && !phone && !parent_number) {
+          return response.errorBadRequest(
+            res, 
+            "missing body request", 
+            "One of these (addresss, name, phone, parent_number) must be filled in."
+          );
+        }
+          
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+          return response.errorBadRequest(res, "user not found", `user with id ${userId} not found`);
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+          // user.id,
+          userId,
+          {
+              $set: {
+                  name: name,
+                  phone: phone,
+                  parent_number: parent_number,
+                  address: address
+              }
+          },
+          { new: true }
+          //mengembalikan dokumen yang telah diupdate
+        );
+
+
+        const updatedUserProfile = {
+          _id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          avatar: updatedUser.avatar,
+          code: updatedUser.code,
+          address: updatedUser.address,
+          phone: updatedUser.phone,
+          parent_number: updatedUser.parent_number
+      };
+
+        return response.successOK(res, 'User profile updated successfully', updatedUserProfile);
+      }catch (error) {
+        next(error);
+      }
+    },
+
+    
   
 }
