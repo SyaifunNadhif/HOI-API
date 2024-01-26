@@ -36,7 +36,6 @@ module.exports = {
             
 
             const codePendaki = await code.generateCode();
-
     
             const user = new User({
                 name,
