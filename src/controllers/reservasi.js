@@ -107,6 +107,54 @@ module.exports = {
         }
     },
 
+    // addAnggota: async (req, res, next) => {
+    //     try {
+    //         const id_book = req.params.id_book;
+    
+    //         // Cari data reservasi berdasarkan id_book
+    //         const reservasi = await Reservasi.findById(id_book);
+    //         if (!reservasi) {
+    //             return res.status(404).json(response.error('Reservation not found'));
+    //         }
+
+    //         const code_anggota_baru = req.body.code_anggota_baru;
+
+    //         // Validasi Kode anggota baru
+    //         if (!code_anggota_baru || !Array.isArray(code_anggota_baru)) {
+    //             return response.errorNotFound(res, 'Invalid array of user codes');
+    //         }
+
+    //         // Cari pengguna berdasarkan kode
+    //         const usersFound = await User.find({ code: { $in: code_anggota_baru } });
+
+    //         // Pastikan semua kode anggota baru ada dalam database
+    //         if (usersFound.length !== code_anggota_baru.length) {
+    //             return response.errorNotFound(res,'One or more user codes not found');
+                
+    //         }
+
+    //         // cek apakah code tersebut sudah masuk ke dalam anggota_pendaki pada tabel reservasi ini
+    //         const existingMembers = reservasi.anggota_pendaki.filter(member => code_anggota_baru.includes(member));
+
+    //         if (existingMembers.length > 0) {
+    //             return response.errorNotFound(res,'One or more members already exist in the reservation');
+    //         }
+
+    //         // Tambahkan kode anggota baru ke dalam array anggota_pendaki
+    //         reservasi.anggota_pendaki.push(...code_anggota_baru);
+
+    //         // Simpan perubahan ke dalam database
+    //         await reservasi.save();
+
+    //         // Ambil data reservasi setelah perubahan
+    //         const reservasiUpdated = await Reservasi.findById(id_book).populate('anggota_pendaki');
+    
+    //         return response.successOK(res, 'Additional members added successfully', reservasiUpdated);
+    //     } catch (e) {
+    //         next(e);
+    //     }
+    // },
+
     addAnggota: async (req, res, next) => {
         try {
             const id_book = req.params.id_book;
@@ -114,38 +162,45 @@ module.exports = {
             // Cari data reservasi berdasarkan id_book
             const reservasi = await Reservasi.findById(id_book);
             if (!reservasi) {
-                return res.status(404).json(response.error('Reservation not found'));
+                return response.errorNotFound(res, 'Reservation not found');
             }
-
+    
             const code_anggota_baru = req.body.code_anggota_baru;
-
+    
             // Validasi Kode anggota baru
             if (!code_anggota_baru || !Array.isArray(code_anggota_baru)) {
-                return response.errorNotFound(res, 'Invalid array of user codes');
+                return response.errorBadRequest(res, 'Invalid array of user codes');
             }
-
+    
             // Cari pengguna berdasarkan kode
             const usersFound = await User.find({ code: { $in: code_anggota_baru } });
-
+    
             // Pastikan semua kode anggota baru ada dalam database
             if (usersFound.length !== code_anggota_baru.length) {
-                return response.errorNotFound(res,'One or more user codes not found');
-                
+                return response.errorNotFound(res, 'One or more user codes not found');
             }
-
-            // cek apakah code tersebut sudah masuk ke dalam anggota_pendaki pada tabel reservasi ini
+    
+            // Cek apakah kode tersebut sudah masuk ke dalam anggota_pendaki pada tabel reservasi ini
             const existingMembers = reservasi.anggota_pendaki.filter(member => code_anggota_baru.includes(member));
-
+    
             if (existingMembers.length > 0) {
-                return response.errorNotFound(res,'One or more members already exist in the reservation');
+                return response.errorBadRequest(res, 'One or more members already exist in the reservation');
             }
-
+    
+            // Hitung jumlah anggota pendaki setelah penambahan
+            const totalAnggotaBaru = reservasi.anggota_pendaki.length + code_anggota_baru.length;
+    
+            // Cek apakah masih bisa menambah anggota pendaki
+            if (totalAnggotaBaru > reservasi.jumlah_pendaki) {
+                return response.errorBadRequest(res, 'Total number of members exceeds the limit');
+            }
+    
             // Tambahkan kode anggota baru ke dalam array anggota_pendaki
             reservasi.anggota_pendaki.push(...code_anggota_baru);
-
+    
             // Simpan perubahan ke dalam database
             await reservasi.save();
-
+    
             // Ambil data reservasi setelah perubahan
             const reservasiUpdated = await Reservasi.findById(id_book).populate('anggota_pendaki');
     
@@ -154,7 +209,7 @@ module.exports = {
             next(e);
         }
     },
-
+    
     cekUser: async (req, res, next) => {
         try {
             const { code } = req.params;
