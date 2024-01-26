@@ -43,7 +43,12 @@ module.exports = {
                 email: userInstance.email,
                 avatar: userInstance.avatar,
                 user_type: userInstance.user_type,
-                code: userInstance.code
+                code: userInstance.code,
+                address: userInstance.address,
+                phone: userInstance.phone,
+                parent_number: userInstance.parent_number,
+
+
             };
 
             next();

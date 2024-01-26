@@ -224,6 +224,45 @@ module.exports = {
       } catch (error) {
           next(error);
       }
-  }
+    },
+
+    getMyProfile: async (req, res, next) => {
+      try {
+        const userId = req.user.id; // Menggunakan id pengguna dari token JWT
+
+        // Cari pengguna berdasarkan ID
+        const user = await User.findById(userId).select('-password');
+
+        if (!user) {
+            return response.errorNotFound(res, "User not found", null);
+        }
+
+        // Hitung jumlah pengikut dan yang diikuti
+        const followersCount = user.followers.length;
+        const followingCount = user.following.length;
+
+        // Mendapatkan postingan pengguna, diurutkan berdasarkan createdAt secara menurun
+        const userPosts = await Post.find({ postedBy: userId }).sort({ createdAt: -1 });
+
+        // Hitung total postingan
+        const postsCount = userPosts.length;
+
+        // Objek respons yang mencakup informasi yang ingin ditampilkan
+        const userProfile = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            code: user.code,
+            address: user.address,
+            phone: user.phone,
+            parent_number: user.parent_number 
+        };
+
+        return response.successOK(res, 'User profile retrieved successfully', userProfile);
+      } catch (error) {
+            next(error);
+      }
+    },
   
 }
