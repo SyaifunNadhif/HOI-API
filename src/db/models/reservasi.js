@@ -28,14 +28,6 @@ const reservationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-    // check_in: {
-  //   type: Date,
-  //   required: false,
-  // },
-  // check_out: {
-  //   type: Date,
-  //   required: false,
-  // },
   anggota_pendaki: [
     {
       type: String, // code user
