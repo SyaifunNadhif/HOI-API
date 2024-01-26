@@ -237,15 +237,6 @@ module.exports = {
             return response.errorNotFound(res, "User not found", null);
         }
 
-        // Hitung jumlah pengikut dan yang diikuti
-        const followersCount = user.followers.length;
-        const followingCount = user.following.length;
-
-        // Mendapatkan postingan pengguna, diurutkan berdasarkan createdAt secara menurun
-        const userPosts = await Post.find({ postedBy: userId }).sort({ createdAt: -1 });
-
-        // Hitung total postingan
-        const postsCount = userPosts.length;
 
         // Objek respons yang mencakup informasi yang ingin ditampilkan
         const userProfile = {

@@ -16,15 +16,11 @@ const userSchema = new mongoose.Schema({
     },
     avatar: {
         type: String,
-        required: false,
+        default: false,
     },
     user_type: {
         type: String,
         default: "basic",
-    },
-    email_verified: {
-        type: Boolean,
-        default: false,
     },
     phone: {
         type: String,
