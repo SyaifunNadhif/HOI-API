@@ -16,13 +16,17 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    code_reservasi: {
+        type: String,
+        default: false,
+    },
     check_in: {
-        type: Date,
-        required: true,
+        type: String,
+        default: false,
     },
     check_out: {
-        type: Date,
-        required: true,
+        type: String,
+        default: false,
     },
     status_pembayaran: {
         type: String,

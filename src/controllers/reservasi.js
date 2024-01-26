@@ -1,9 +1,9 @@
 const response = require('../utils/response');
-const {Reservasi, Mount, User} = require('../db/models/');
+const {Reservation, Mount, User, Order} = require('../db/models/');
 
 
 module.exports = {
-    createReservasi: async (req, res, next) => {
+    createReservation: async (req, res, next) => {
         try {
             const { total, jumlah_pendaki, tanggal_pendakian, durasi_pendakian } = req.body;
             const { user } = req;
@@ -26,7 +26,7 @@ module.exports = {
             }
             
             // Logika untuk membuat reservasi
-            const reservasi = new Reservasi({
+            const reservasi = new Reservation({
                 user_id: id_user,
                 mount_id: id_mount,
                 total,
@@ -38,18 +38,18 @@ module.exports = {
 
             await reservasi.save();
 
-            return response.successCreated(res,'Reservasi created successfully', reservasi);
+            return response.successCreated(res,'Reservation created successfully', reservasi);
         } catch (e) {
             next(e);
         }
     }, 
     
-    getDataReservasi: async (req, res, next) => {
+    getDataReservation: async (req, res, next) => {
         try {
             const id_book = req.params.id_book;
     
             // Cari data reservasi berdasarkan id_book
-            const reservasi = await Reservasi.findById(id_book);
+            const reservasi = await Reservation.findById(id_book);
             if (!reservasi) {
                 return res.status(404).json(response.error('Reservation not found'));
             }
@@ -76,6 +76,15 @@ module.exports = {
                     phone: anggota.phone,
                 };
             }));
+
+            const adminFee = reservasi.total * 0.1;
+    
+            // Informasi pembayaran
+            const pembayaran = {
+                total_tiket: reservasi.total,
+                admin: adminFee,
+                biaya_aplikasi: 2000,
+            };
     
             // Siapkan payload respons yang mencakup data reservasi, user, dan mount
             const payload = {
@@ -95,72 +104,25 @@ module.exports = {
                     gunung: mount.name,
                     tiket: mount.ticket_price,
                     basecamp: mount.basecamp
-                }
+                },
+                pembayaran : pembayaran,
 
             }
         
     
             // Kembalikan respons sukses bersama dengan payload
-            return response.successOK(res, 'Reservasi get successfully', payload);
+            return response.successOK(res, 'Reservation get successfully', payload);
         } catch (e) {
             next(e);
         }
     },
-
-    // addAnggota: async (req, res, next) => {
-    //     try {
-    //         const id_book = req.params.id_book;
     
-    //         // Cari data reservasi berdasarkan id_book
-    //         const reservasi = await Reservasi.findById(id_book);
-    //         if (!reservasi) {
-    //             return res.status(404).json(response.error('Reservation not found'));
-    //         }
-
-    //         const code_anggota_baru = req.body.code_anggota_baru;
-
-    //         // Validasi Kode anggota baru
-    //         if (!code_anggota_baru || !Array.isArray(code_anggota_baru)) {
-    //             return response.errorNotFound(res, 'Invalid array of user codes');
-    //         }
-
-    //         // Cari pengguna berdasarkan kode
-    //         const usersFound = await User.find({ code: { $in: code_anggota_baru } });
-
-    //         // Pastikan semua kode anggota baru ada dalam database
-    //         if (usersFound.length !== code_anggota_baru.length) {
-    //             return response.errorNotFound(res,'One or more user codes not found');
-                
-    //         }
-
-    //         // cek apakah code tersebut sudah masuk ke dalam anggota_pendaki pada tabel reservasi ini
-    //         const existingMembers = reservasi.anggota_pendaki.filter(member => code_anggota_baru.includes(member));
-
-    //         if (existingMembers.length > 0) {
-    //             return response.errorNotFound(res,'One or more members already exist in the reservation');
-    //         }
-
-    //         // Tambahkan kode anggota baru ke dalam array anggota_pendaki
-    //         reservasi.anggota_pendaki.push(...code_anggota_baru);
-
-    //         // Simpan perubahan ke dalam database
-    //         await reservasi.save();
-
-    //         // Ambil data reservasi setelah perubahan
-    //         const reservasiUpdated = await Reservasi.findById(id_book).populate('anggota_pendaki');
-    
-    //         return response.successOK(res, 'Additional members added successfully', reservasiUpdated);
-    //     } catch (e) {
-    //         next(e);
-    //     }
-    // },
-
     addAnggota: async (req, res, next) => {
         try {
             const id_book = req.params.id_book;
     
             // Cari data reservasi berdasarkan id_book
-            const reservasi = await Reservasi.findById(id_book);
+            const reservasi = await Reservation.findById(id_book);
             if (!reservasi) {
                 return response.errorNotFound(res, 'Reservation not found');
             }
@@ -202,7 +164,7 @@ module.exports = {
             await reservasi.save();
     
             // Ambil data reservasi setelah perubahan
-            const reservasiUpdated = await Reservasi.findById(id_book).populate('anggota_pendaki');
+            const reservasiUpdated = await Reservation.findById(id_book).populate('anggota_pendaki');
     
             return response.successOK(res, 'Additional members added successfully', reservasiUpdated);
         } catch (e) {
@@ -213,13 +175,7 @@ module.exports = {
     cekUser: async (req, res, next) => {
         try {
             const { code } = req.params;
-
-            // code = code.toUpperCase();
-
-            // console.log(code); // Output: PGU-2410
-
-    
-            // Cek apakah code itu ada di table User
+            
             const user = await User.findOne({ code });
     
             if (!user) {
@@ -241,7 +197,67 @@ module.exports = {
     },
 
     checkout: async (req, res, next) => {
-        
+        try {
+            const userId = req.user.id; // Menggunakan id pengguna dari token JWT
+            const reservasiId = req.params.id_book;
+
+            console.log("user id",userId);
+            console.log("id reserved", reservasiId);
+    
+            // Cari data reservasi yang diminta oleh pengguna
+            const reservasi = await Reservation.findOne({ _id: reservasiId });
+    
+            if (!reservasi) {
+                return response.errorNotFound(res, 'Reservation not found', null);
+            }
+
+            const existingOrder = await Order.findOne({ id_reservasi: reservasi._id });
+
+            if (existingOrder) {
+                return response.errorBadRequest(res, 'Order already exists for this reservation', null);
+            }
+    
+            // Hitung biaya admin (10% dari total tiket)
+            const adminFee = reservasi.total * 0.1;
+    
+            // Informasi pembayaran
+            const pembayaran = {
+                total_tiket: reservasi.total,
+                admin: adminFee,
+                biaya_aplikasi: 2000,
+            };
+
+            // jika reservasiId ada di tabel order maka tidak bisa 
+    
+            // Buat data order dengan informasi pembayaran
+            const newOrder = new Order({
+                id_reservasi: reservasi._id,
+                id_user: userId,
+                total: reservasi.total + adminFee + 2000, // Total order termasuk biaya admin dan biaya aplikasi
+                // code_reservasi: reservasi.code,
+                status_pembayaran: 'pending',
+                metode_pembayaran: 'onsite',
+            });
+    
+            // Simpan order ke dalam database
+            await newOrder.save();
+    
+            // Objek respons yang mencakup informasi yang ingin ditampilkan setelah pembuatan order
+            const orderDetails = {
+                _id: newOrder._id,
+                id_reservasi: newOrder.id_reservasi,
+                id_user: newOrder.id_user,
+                total: newOrder.total,
+                code_reservasi: newOrder.code_reservasi,
+                status_pembayaran: newOrder.status_pembayaran,
+                metode_pembayaran: newOrder.metode_pembayaran,
+                pembayaran: pembayaran, // Menambahkan informasi pembayaran ke respons
+            };
+    
+            return response.successOK(res, 'Order created successfully', orderDetails);
+        } catch (error) {
+            next(error);
+        }
     },
     
     
