@@ -62,7 +62,7 @@ module.exports = {
             let check_out = order.check_out;
 
             // Periksa kondisi check_in dan check_out
-            if (check_in === false && check_out === false) {
+            if (check_in === 'false' && check_out === 'false') {
                 check_in = '-';
                 check_out = '-';
             }
@@ -90,10 +90,46 @@ module.exports = {
     },
 
     cancel: async (req, res, next) => {
-        try{
+        try {
+            const { orderid } = req.params;
+            const userId  = req.user.id; // Menggunakan id order dari parameter URL
 
-        }catch(err){
-            next(err);
-        }
-    },
+            console.log(userId);
+            // ! cari userId === order.id_user
+            // Cari order berdasarkan _id
+            const order = await Order.findById(orderid);
+
+            // Periksa apakah order ditemukan
+            if (!order) {
+                return response.errorNotFound(res, 'Order not found', null);
+            }
+
+            // Periksa apakah pengguna yang masuk sesuai dengan pengguna yang membuat pesanan
+            if (order.id_user.toString() !== userId) {
+                return response.errorUnauthorized(res, 'Unauthorized to cancel this order', null);
+            }
+    
+            // Periksa apakah reservasi sudah dibayar (optional, sesuaikan dengan kebutuhan)
+            if (order.status_pembayaran !== 'pending') {
+                return response.errorBadRequest(res, 'Reservation cannot be canceled as it is not in pending status', null);
+            }
+    
+            // Ubah status_pembayaran menjadi "canceled"
+            order.status_pembayaran = 'cancelled';
+    
+            // Simpan perubahan ke dalam database
+            await order.save();
+    
+            // Objek respons yang mencakup informasi yang ingin ditampilkan
+            const canceledOrder = {
+                _id: order._id,
+                status_pembayaran: order.status_pembayaran,
+                // Tambahkan atribut lain sesuai kebutuhan
+            };
+    
+            return response.successOK(res, 'Order canceled successfully', canceledOrder);
+        } catch (error) {
+            next(error);
+        }   
+    },   
 }
