@@ -5,7 +5,11 @@ module.exports = {
     pendingReservasi: async (req, res, next) => {
         try {
             const status = "pending"; // Menggunakan id pengguna dari token JWT
-    
+            
+            if (req.user.user_type !== 'admin') {
+                return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
+            }
+
             // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
             const pendingReservasi = await Order.find({ status_pembayaran: status });
     
@@ -38,6 +42,10 @@ module.exports = {
     successReservasi: async (req, res, next) => {
         try {
             const status = "success"; // Menggunakan id pengguna dari token JWT
+
+            if (req.user.user_type !== 'admin') {
+                return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
+            }
     
             // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
             const successReservasi = await Order.find({ status_pembayaran: status });
