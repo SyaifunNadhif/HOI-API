@@ -6,6 +6,7 @@ const mount = require("./mount");
 const reservasi = require("./reservasi");
 const regulation = require("./regulation");
 const order = require("./order");
+const admin = require("./admin");
 
 
 
@@ -24,5 +25,6 @@ router.use("/mount", mount);
 router.use("/reservasi", reservasi);
 router.use("/regulation", regulation);
 router.use("/order", order);
+router.use("/admin", admin);
 
 module.exports = router;

@@ -35,6 +35,39 @@ module.exports = {
         }
     },
 
+    successReservasi: async (req, res, next) => {
+        try {
+            const status = "success"; // Menggunakan id pengguna dari token JWT
+    
+            // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
+            const successReservasi = await Order.find({ status_pembayaran: status });
+    
+            // Objek respons yang mencakup informasi yang ingin ditampilkan
+            const allreservasi = successReservasi.map(order => {
+                // Periksa kondisi check_in dan check_out
+                const formattedCheckIn = order.check_in === 'false' ? '-' : order.check_in;
+                const formattedCheckOut = order.check_out === 'false' ? '-' : order.check_out;
+            
+                return {
+                    _id: order._id,
+                    id_reservasi: order.id_reservasi,
+                    total: order.total,
+                    ketua: 'nana',
+                    check_in: formattedCheckIn,
+                    check_out: formattedCheckOut,
+                    status_pembayaran: order.status_pembayaran,
+                    metode_pembayaran: order.metode_pembayaran,
+                    createdAt: order.createdAt,
+                    // Tambahkan atribut lain sesuai kebutuhan
+                };
+            });
+    
+            return response.successOK(res, 'Order history retrieved successfully', allreservasi);
+        }catch(err) {
+            next(err)
+        }
+    },
+
     detail: async (req, res, next) => {
         try {
             const {orderid} = req.params; // Menggunakan id order dari parameter URL
