@@ -2,15 +2,15 @@ const response = require('../utils/response');
 const {Reservation, Mount, User, Order} = require('../db/models/');
 
 module.exports = {
-    history: async (req, res, next) => {
+    pendingReservasi: async (req, res, next) => {
         try {
-            const userId = req.user.id; // Menggunakan id pengguna dari token JWT
+            const status = "pending"; // Menggunakan id pengguna dari token JWT
     
             // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
-            const userOrders = await Order.find({ id_user: userId });
+            const pendingReservasi = await Order.find({ status_pembayaran: status });
     
             // Objek respons yang mencakup informasi yang ingin ditampilkan
-            const orderHistory = userOrders.map(order => {
+            const allreservasi = pendingReservasi.map(order => {
                 // Periksa kondisi check_in dan check_out
                 const formattedCheckIn = order.check_in === 'false' ? '-' : order.check_in;
                 const formattedCheckOut = order.check_out === 'false' ? '-' : order.check_out;
@@ -19,6 +19,7 @@ module.exports = {
                     _id: order._id,
                     id_reservasi: order.id_reservasi,
                     total: order.total,
+                    ketua: 'nana',
                     check_in: formattedCheckIn,
                     check_out: formattedCheckOut,
                     status_pembayaran: order.status_pembayaran,
@@ -28,7 +29,7 @@ module.exports = {
                 };
             });
     
-            return response.successOK(res, 'Order history retrieved successfully', orderHistory);
+            return response.successOK(res, 'Order history retrieved successfully', allreservasi);
         }catch(err) {
             next(err)
         }
@@ -96,48 +97,5 @@ module.exports = {
             next(error);
         }
     },
-
-    cancel: async (req, res, next) => {
-        try {
-            const { orderid } = req.params;
-            const userId  = req.user.id; // Menggunakan id order dari parameter URL
-
-            console.log(userId);
-            // ! cari userId === order.id_user
-            // Cari order berdasarkan _id
-            const order = await Order.findById(orderid);
-
-            // Periksa apakah order ditemukan
-            if (!order) {
-                return response.errorNotFound(res, 'Order not found', null);
-            }
-
-            // Periksa apakah pengguna yang masuk sesuai dengan pengguna yang membuat pesanan
-            if (order.id_user.toString() !== userId) {
-                return response.errorUnauthorized(res, 'Unauthorized to cancel this order', null);
-            }
-    
-            // Periksa apakah reservasi sudah dibayar (optional, sesuaikan dengan kebutuhan)
-            if (order.status_pembayaran !== 'pending') {
-                return response.errorBadRequest(res, 'Reservation cannot be canceled as it is not in pending status', null);
-            }
-    
-            // Ubah status_pembayaran menjadi "canceled"
-            order.status_pembayaran = 'cancelled';
-    
-            // Simpan perubahan ke dalam database
-            await order.save();
-    
-            // Objek respons yang mencakup informasi yang ingin ditampilkan
-            const canceledOrder = {
-                _id: order._id,
-                status_pembayaran: order.status_pembayaran,
-                // Tambahkan atribut lain sesuai kebutuhan
-            };
-    
-            return response.successOK(res, 'Order canceled successfully', canceledOrder);
-        } catch (error) {
-            next(error);
-        }   
-    },   
+   
 }

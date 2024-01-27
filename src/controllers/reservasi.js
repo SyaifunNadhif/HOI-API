@@ -174,9 +174,10 @@ module.exports = {
     
     cekUser: async (req, res, next) => {
         try {
-            const { code } = req.params;
+            const code  = req.query.code;
+            // console.log(code);
             
-            const user = await User.findOne({ code });
+            const user = await User.findOne({ code: code });
     
             if (!user) {
                 return res.status(404).json(response.error('User not found'));
