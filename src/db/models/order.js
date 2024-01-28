@@ -21,16 +21,16 @@ const orderSchema = new mongoose.Schema({
         default: false,
     },
     check_in: {
-        type: String,
-        default: false,
+        type: Date,  
+        default: null,  
     },
     check_out: {
-        type: String,
-        default: false,
+        type: Date,  
+        default: null,  
     },
     status_pembayaran: {
         type: String,
-        enum: ['pending', 'success', 'cancelled'],
+        enum: ['pending', 'success', 'completed', 'cancelled'],
         default: 'pending',
     },
     metode_pembayaran: {

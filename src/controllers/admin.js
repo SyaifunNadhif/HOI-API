@@ -16,8 +16,8 @@ module.exports = {
             // Objek respons yang mencakup informasi yang ingin ditampilkan
             const allreservasi = pendingReservasi.map(order => {
                 // Periksa kondisi check_in dan check_out
-                const formattedCheckIn = order.check_in === 'false' ? '-' : order.check_in;
-                const formattedCheckOut = order.check_out === 'false' ? '-' : order.check_out;
+                const formattedCheckIn = order.check_in === null ? '-' : order.check_in;
+                const formattedCheckOut = order.check_out === null ? '-' : order.check_out;
             
                 return {
                     _id: order._id,
@@ -53,8 +53,8 @@ module.exports = {
             // Objek respons yang mencakup informasi yang ingin ditampilkan
             const allreservasi = successReservasi.map(order => {
                 // Periksa kondisi check_in dan check_out
-                const formattedCheckIn = order.check_in === 'false' ? '-' : order.check_in;
-                const formattedCheckOut = order.check_out === 'false' ? '-' : order.check_out;
+                const formattedCheckIn = order.check_in === null ? '-' : order.check_in;
+                const formattedCheckOut = order.check_out === null ? '-' : order.check_out;
             
                 return {
                     _id: order._id,
@@ -112,7 +112,7 @@ module.exports = {
             let check_out = order.check_out;
 
             // Periksa kondisi check_in dan check_out
-            if (check_in === 'false' && check_out === 'false') {
+            if (check_in === null && check_out === null) {
                 check_in = '-';
                 check_out = '-';
             }
@@ -138,5 +138,68 @@ module.exports = {
             next(error);
         }
     },
-   
+
+    checkIn: async (req, res, next) => {
+        try {
+            const { orderid } = req.params;
+
+            if (req.user.user_type !== 'admin') {
+                return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
+            }
+
+            // Cari order berdasarkan _id
+            const order = await Order.findOne({ _id: orderid });
+
+            // Periksa apakah order ditemukan
+            if (!order) {
+                return response.errorNotFound(res, 'Order not found', null);
+            }
+
+            // Periksa apakah order sudah check-in atau check-out
+            if (order.check_in !== null) {
+                return response.errorBadRequest(res, 'Order has already been checked in', null);
+            }
+
+            // Update waktu check-in dan status_pembayaran menjadi "success"
+            order.check_in = new Date();
+            order.status_pembayaran = 'success';
+            await order.save();
+
+            return response.successOK(res, 'Check-in successful', null);
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    checkOut: async (req, res, next) => {
+        try {
+            const { orderid } = req.params;
+
+            if (req.user.user_type !== 'admin') {
+                return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
+            }
+
+            // Cari order berdasarkan _id
+            const order = await Order.findOne({ _id: orderid });
+
+            // Periksa apakah order ditemukan
+            if (!order) {
+                return response.errorNotFound(res, 'Order not found', null);
+            }
+
+            // Periksa apakah order sudah check-out
+            if (order.check_out !== null) {
+                return response.errorBadRequest(res, 'Order has already been checked out', null);
+            }
+
+            // Update waktu check-out dan status_pembayaran menjadi "completed"
+            order.check_out = new Date();
+            order.status_pembayaran = 'completed';
+            await order.save();
+
+            return response.successOK(res, 'Check-out successful', null);
+        } catch (error) {
+            next(error);
+        }
+    },
 }
