@@ -39,6 +39,43 @@ module.exports = {
         }
     },
 
+    allReservasi: async (req, res, next) => {
+        try {
+            const status = req.query.status;// Menggunakan id pengguna dari token JWT
+            
+            if (req.user.user_type !== 'admin') {
+                return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
+            }
+
+            // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
+            const pendingReservasi = await Order.find({ status_pembayaran: status });
+    
+            // Objek respons yang mencakup informasi yang ingin ditampilkan
+            const allreservasi = pendingReservasi.map(order => {
+                // Periksa kondisi check_in dan check_out
+                const formattedCheckIn = order.check_in === null ? '-' : order.check_in;
+                const formattedCheckOut = order.check_out === null ? '-' : order.check_out;
+            
+                return {
+                    _id: order._id,
+                    id_reservasi: order.id_reservasi,
+                    total: order.total,
+                    ketua: 'nana',
+                    check_in: formattedCheckIn,
+                    check_out: formattedCheckOut,
+                    status_pembayaran: order.status_pembayaran,
+                    metode_pembayaran: order.metode_pembayaran,
+                    createdAt: order.createdAt,
+                    // Tambahkan atribut lain sesuai kebutuhan
+                };
+            });
+    
+            return response.successOK(res, 'All data Pendakian', allreservasi);
+        }catch(err) {
+            next(err)
+        }
+    },
+
     successReservasi: async (req, res, next) => {
         try {
             const status = "success"; // Menggunakan id pengguna dari token JWT
@@ -90,6 +127,8 @@ module.exports = {
 
             // Cari data reservasi berdasarkan id_reservasi pada order
             const reservasi = await Reservation.findOne({ _id: order.id_reservasi });
+
+            console.log('azil', order.id_user);
 
             const user = await User.findById(reservasi.user_id);
             if (!user) {
@@ -143,12 +182,15 @@ module.exports = {
         try {
             const { orderid } = req.params;
 
+
             if (req.user.user_type !== 'admin') {
                 return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
             }
 
             // Cari order berdasarkan _id
             const order = await Order.findOne({ _id: orderid });
+
+            console.log(order.id_user);
 
             // Periksa apakah order ditemukan
             if (!order) {
@@ -185,6 +227,16 @@ module.exports = {
             // Periksa apakah order ditemukan
             if (!order) {
                 return response.errorNotFound(res, 'Order not found', null);
+            }
+
+            // Periksa apakah order sudah check-in atau check-out
+            if (order.check_in !== null) {
+                return response.errorBadRequest(res, 'Order has already been checked in', null);
+            }
+        
+            // Periksa apakah status pembayaran adalah "pending"
+            if (order.status_pembayaran !== 'pending') {
+                return response.errorBadRequest(res, 'Order payment status is not pending', null);
             }
 
             // Periksa apakah order sudah check-out

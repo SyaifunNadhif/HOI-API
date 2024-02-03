@@ -16,10 +16,6 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    code_reservasi: {
-        type: String,
-        default: false,
-    },
     check_in: {
         type: Date,  
         default: null,  

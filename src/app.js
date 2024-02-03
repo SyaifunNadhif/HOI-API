@@ -9,12 +9,12 @@ const cors = require("cors");
 const PORT = process.env.PORT || 8000;
 
 app.use(cors());
+app.use(express.json());
+app.use(router);
 
 // Ambil URI MongoDB dari berkas .env
 const mongodbURI = process.env.MONGODB_URI;
 // console.log(mongodbURI);
-app.use(express.json());
-app.use(router);
 
 // Konfigurasi koneksi MongoDB menggunakan Mongoose
 mongoose.connect(mongodbURI, { useNewUrlParser: true, useUnifiedTopology: true });

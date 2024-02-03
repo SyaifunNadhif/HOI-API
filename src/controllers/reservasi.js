@@ -1,4 +1,5 @@
 const response = require('../utils/response');
+const notif = require('../utils/notification');
 const {Reservation, Mount, User, Order} = require('../db/models/');
 
 
@@ -120,6 +121,7 @@ module.exports = {
     addAnggota: async (req, res, next) => {
         try {
             const id_book = req.params.id_book;
+            const { user } = req;
     
             // Cari data reservasi berdasarkan id_book
             const reservasi = await Reservation.findById(id_book);
@@ -162,6 +164,14 @@ module.exports = {
     
             // Simpan perubahan ke dalam database
             await reservasi.save();
+
+            const notifData = [{
+				title: "Selamat Bergabung!",
+				description: "Terima kasih, Ayo lanjutkan ke tahap order, agar dapat melakukan pendakian.",
+				user_id: user.id
+			}];
+
+			notif.sendNotif(notifData);
     
             // Ambil data reservasi setelah perubahan
             const reservasiUpdated = await Reservation.findById(id_book).populate('anggota_pendaki');
@@ -228,6 +238,8 @@ module.exports = {
                 biaya_aplikasi: 2000,
             };
 
+
+
             // jika reservasiId ada di tabel order maka tidak bisa 
     
             // Buat data order dengan informasi pembayaran
@@ -242,6 +254,26 @@ module.exports = {
     
             // Simpan order ke dalam database
             await newOrder.save();
+
+            const options = {
+                style: 'currency',
+                currency: 'IDR',
+            };
+              
+            const tagihan = new Intl.NumberFormat('id-ID', options).format(newOrder.total);
+            
+            console.log(tagihan);
+            
+            const notifData = [{
+            title: "Order Berhasil",
+            description: `Order Anda berhasil! Silakan selesaikan pembayaran sebesar ${tagihan} saat berada di loket dengan melihatkan Detail Order.`,
+            user_id: userId
+            }];
+
+            console.log(notifData)
+              
+
+			notif.sendNotif(notifData);
     
             // Objek respons yang mencakup informasi yang ingin ditampilkan setelah pembuatan order
             const orderDetails = {

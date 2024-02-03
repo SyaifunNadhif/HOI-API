@@ -3,6 +3,7 @@ const code = require('../utils/code');
 const {User} = require('../db/models/'); 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const notif = require("../utils/notification");
 const {JWT_SECRET_KEY} = process.env;
 
 module.exports = {
@@ -25,25 +26,18 @@ module.exports = {
             if (!name || !email || !password) {
                 return response.errorEntity(res, 'Invalid credentials!', 'Please add all the fields');
             }
-    
             const exist = await User.findOne({ email: email });
             if (exist) {
                 return response.errorBadRequest(res, 'Invalid credentials!', 'User already exists with that email');
             }
-    
             const hashPassword = await bcrypt.hash(password, 10);
-            
-            
-
             const codePendaki = await code.generateCode();
-    
             const user = new User({
                 name,
                 email,
                 password: hashPassword,
                 code: codePendaki
             });
-    
             const savedUser = await user.save();
             const data = {
                 id: savedUser._id,
@@ -82,6 +76,14 @@ module.exports = {
                 name: user.name,
                 email: user.email
             };
+
+            const notifData = [{
+				title: "Login activity",
+				description: "there is login activity in your account!",
+				user_id: user.id
+			}];
+
+			notif.sendNotif(notifData);
 
             const token = await jwt.sign(payload, JWT_SECRET_KEY);
     

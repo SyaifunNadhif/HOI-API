@@ -1,5 +1,5 @@
 // controllers/notification.js
-const Notification = require('../models/notification');
+const {Notification} = require('../models/');
 const response = require('../utils/response');
 
 module.exports = {

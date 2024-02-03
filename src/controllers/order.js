@@ -1,5 +1,6 @@
 const response = require('../utils/response');
 const {Reservation, Mount, User, Order} = require('../db/models/');
+const notif = require('../utils/notification');
 
 module.exports = {
     history: async (req, res, next) => {
@@ -127,6 +128,17 @@ module.exports = {
     
             // Simpan perubahan ke dalam database
             await order.save();
+
+            const notifData = [{
+                title: "Reservasi Batal",
+                description: "Sayang sekali, reservasi Anda telah dibatalkan. Jangan ragu untuk menghubungi kami jika Anda memiliki pertanyaan lebih lanjut.",
+                user_id: userId
+            }];
+              
+            console.log(notifData);
+              
+            notif.sendNotif(notifData);
+              
     
             // Objek respons yang mencakup informasi yang ingin ditampilkan
             const canceledOrder = {

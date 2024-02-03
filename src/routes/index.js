@@ -13,8 +13,8 @@ const admin = require("./admin");
 router.get("/", (req, res) => {
 	res.status(200).json({
 		status: true,
-		message: "Welcome to API Reservasi Pendakian Gunung Ungaran",
-		data: null
+		message: "Welcome to API Reservasi GUnung Ungaran",
+		version: 1.3
 	});
 });
 
