@@ -12,6 +12,10 @@ const orderSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    tanggal_pendakian: {
+        type: Date,
+        required: false,
+    },
     total: {
         type: Number,
         required: true,

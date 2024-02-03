@@ -7,6 +7,7 @@ const jwt = require('../middlewares/barier');
 
 router.get('/reservasipending/', jwt.protected, admin.pendingReservasi);
 router.get('/reservasisuccess/', jwt.protected, admin.successReservasi);
+router.get('/reservasitoday/', jwt.protected, admin.reservasiToday);
 router.get('/alldata/', jwt.protected, admin.allReservasi);
 router.get('/detailreservasi/:orderid', admin.detail);
 router.put('/check-in/:orderid', jwt.protected, admin.checkIn);

@@ -247,7 +247,7 @@ module.exports = {
                 id_reservasi: reservasi._id,
                 id_user: userId,
                 total: reservasi.total + adminFee + 2000, // Total order termasuk biaya admin dan biaya aplikasi
-                // code_reservasi: reservasi.code,
+                tanggal_pendakian: reservasi.tanggal_pendakian,
                 status_pembayaran: 'pending',
                 metode_pembayaran: 'onsite',
             });
@@ -281,7 +281,8 @@ module.exports = {
                 id_reservasi: newOrder.id_reservasi,
                 id_user: newOrder.id_user,
                 total: newOrder.total,
-                code_reservasi: newOrder.code_reservasi,
+                tanggal_pendakian: newOrder.tanggal_pendakian,
+                // code_reservasi: newOrder.code_reservasi,
                 status_pembayaran: newOrder.status_pembayaran,
                 metode_pembayaran: newOrder.metode_pembayaran,
                 pembayaran: pembayaran, // Menambahkan informasi pembayaran ke respons

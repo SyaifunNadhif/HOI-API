@@ -1,44 +1,54 @@
 const response = require('../utils/response');
-const {Reservation, Mount, User, Order} = require('../db/models/');
+const moment = require('moment');
+
+const {Reservation, User, Order} = require('../db/models/');
 
 module.exports = {
     pendingReservasi: async (req, res, next) => {
         try {
-            const status = "pending"; // Menggunakan id pengguna dari token JWT
-            
+            const status = req.query.status;
+    
             if (req.user.user_type !== 'admin') {
                 return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
             }
-
-            // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
-            const pendingReservasi = await Order.find({ status_pembayaran: status });
     
-            // Objek respons yang mencakup informasi yang ingin ditampilkan
-            const allreservasi = pendingReservasi.map(order => {
-                // Periksa kondisi check_in dan check_out
-                const formattedCheckIn = order.check_in === null ? '-' : order.check_in;
-                const formattedCheckOut = order.check_out === null ? '-' : order.check_out;
-            
-                return {
-                    _id: order._id,
-                    id_reservasi: order.id_reservasi,
-                    total: order.total,
-                    ketua: 'nana',
-                    check_in: formattedCheckIn,
-                    check_out: formattedCheckOut,
-                    status_pembayaran: order.status_pembayaran,
-                    metode_pembayaran: order.metode_pembayaran,
-                    createdAt: order.createdAt,
-                    // Tambahkan atribut lain sesuai kebutuhan
-                };
-            });
+            // Cari semua order yang memiliki status_pembayaran 'pending' dan tanggal_pendakian lebih besar atau sama dengan tanggal saat ini
+            const pendingReservasi = await Order.aggregate([
+                {
+                    $match: {
+                        status_pembayaran: status,
+                        // Menambahkan filter tanggal_pendakian
+                        tanggal_pendakian: { $gte: moment().startOf('day').toDate() },
+                    },
+                },
+                {
+                    $project: {
+                        _id: '$_id',
+                        id_reservasi: '$id_reservasi',
+                        total: '$total',
+                        ketua: 'nana',
+                        check_in: { $ifNull: ['$check_in', '-'] },
+                        check_out: { $ifNull: ['$check_out', '-'] },
+                        status_pembayaran: '$status_pembayaran',
+                        metode_pembayaran: '$metode_pembayaran',
+                        // createdAt: '$createdAt',
+                        // Menambahkan kolom baru untuk formatted_tanggal_pendakian
+                        tanggal_pendakian: {
+                            $dateToString: {
+                                format: '%d-%m-%Y',
+                                date: '$tanggal_pendakian'
+                            }
+                        },
+                    },
+                },
+            ]);
     
-            return response.successOK(res, 'Order history retrieved successfully', allreservasi);
-        }catch(err) {
-            next(err)
+            return response.successOK(res, 'Order history retrieved successfully', pendingReservasi);
+        } catch (err) {
+            next(err);
         }
     },
-
+    
     allReservasi: async (req, res, next) => {
         try {
             const status = req.query.status;// Menggunakan id pengguna dari token JWT
@@ -59,6 +69,7 @@ module.exports = {
                 return {
                     _id: order._id,
                     id_reservasi: order.id_reservasi,
+                    tanggal_pendakian: order.tanggal_pendakian,
                     total: order.total,
                     ketua: 'nana',
                     check_in: formattedCheckIn,
@@ -78,40 +89,65 @@ module.exports = {
 
     successReservasi: async (req, res, next) => {
         try {
-            const status = "success"; // Menggunakan id pengguna dari token JWT
-
+            const status = "completed";
+        
+            const bulan = req.query.bulan;
+            const tahun = req.query.tahun;
+        
             if (req.user.user_type !== 'admin') {
                 return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
             }
-    
-            // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
-            const successReservasi = await Order.find({ status_pembayaran: status });
-    
-            // Objek respons yang mencakup informasi yang ingin ditampilkan
-            const allreservasi = successReservasi.map(order => {
-                // Periksa kondisi check_in dan check_out
-                const formattedCheckIn = order.check_in === null ? '-' : order.check_in;
-                const formattedCheckOut = order.check_out === null ? '-' : order.check_out;
+        
+            const monthlyTotal = await Order.aggregate([
+                {
+                    $match: {
+                        status_pembayaran: status,
+                        tanggal_pendakian: {
+                            $gte: new Date(`${tahun}-${bulan}-01T00:00:00Z`),
+                            $lt: new Date(`${tahun}-${parseInt(bulan) + 1}-01T00:00:00Z`)
+                        },
+                    },
+                },
+                {
+                    $group: {
+                        _id: null,
+                        total_tiket: { $sum: '$total' },
+                    },
+                },
+            ]);
             
+            console.log(monthlyTotal);
+        
+            // Ambil semua data reservasi yang berhasil
+            const successReservasi = await Order.find({
+                status_pembayaran: status,
+                tanggal_pendakian: {
+                    $gte: new Date(`${tahun}-${bulan}-01`),
+                    $lt: new Date(`${tahun}-${parseInt(bulan) + 1}-01`)
+                },
+            });
+        
+            // Objek respons yang mencakup informasi yang ingin ditampilkan
+            const dataSummary = successReservasi.map(order => {
                 return {
                     _id: order._id,
                     id_reservasi: order.id_reservasi,
                     total: order.total,
                     ketua: 'nana',
-                    check_in: formattedCheckIn,
-                    check_out: formattedCheckOut,
+                    check_in: order.check_in || '-',
+                    check_out: order.check_out || '-',
+                    tanggal_pendakian: order.tanggal_pendakian,
                     status_pembayaran: order.status_pembayaran,
                     metode_pembayaran: order.metode_pembayaran,
-                    createdAt: order.createdAt,
-                    // Tambahkan atribut lain sesuai kebutuhan
                 };
             });
-    
-            return response.successOK(res, 'Order history retrieved successfully', allreservasi);
-        }catch(err) {
-            next(err)
+        
+            return response.successOK(res, 'Order history retrieved successfully', { monthlyTotal, dataSummary });
+        } catch (err) {
+            next(err);
         }
     },
+    
 
     detail: async (req, res, next) => {
         try {
@@ -165,7 +201,7 @@ module.exports = {
                 total: order.total,
                 durasi_pendakian: reservasi.durasi_pendakian,
                 jumlah_pendaki: reservasi.jumlah_pendaki,
-                tanggal_pendakian: reservasi.tanggal_pendakian,
+                tanggal_pendakian: order.tanggal_pendakian,
                 pendaki: anggotaPendakiData,
                 // createdAt: order.createdAt,
                 // Menambahkan data reservasi ke dalam respons
@@ -190,7 +226,7 @@ module.exports = {
             // Cari order berdasarkan _id
             const order = await Order.findOne({ _id: orderid });
 
-            console.log(order.id_user);
+            // console.log(order.id_user);
 
             // Periksa apakah order ditemukan
             if (!order) {
@@ -230,12 +266,12 @@ module.exports = {
             }
 
             // Periksa apakah order sudah check-in atau check-out
-            if (order.check_in !== null) {
+            if (order.check_in === null) {
                 return response.errorBadRequest(res, 'Order has already been checked in', null);
             }
         
             // Periksa apakah status pembayaran adalah "pending"
-            if (order.status_pembayaran !== 'pending') {
+            if (order.status_pembayaran === 'pending') {
                 return response.errorBadRequest(res, 'Order payment status is not pending', null);
             }
 
@@ -254,4 +290,54 @@ module.exports = {
             next(error);
         }
     },
+
+    reservasiToday: async (req, res, next) => {
+        try {
+            const status = req.query.status;
+    
+            if (req.user.user_type !== 'admin') {
+                return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
+            }
+    
+            // Dapatkan tanggal saat ini
+            const today = moment().startOf('day').toDate();
+    
+            // Cari semua order yang memiliki status_pembayaran 'pending' dan tanggal_pendakian sama dengan tanggal hari ini
+            const pendingReservasi = await Order.aggregate([
+                {
+                    $match: {
+                        status_pembayaran: status,
+                        // Menambahkan filter tanggal_pendakian untuk hari ini
+                        tanggal_pendakian: { $gte: today, $lt: moment(today).add(1, 'days').toDate() },
+                    },
+                },
+                {
+                    $project: {
+                        _id: '$_id',
+                        id_reservasi: '$id_reservasi',
+                        total: '$total',
+                        ketua: 'nana',
+                        check_in: { $ifNull: ['$check_in', '-'] },
+                        check_out: { $ifNull: ['$check_out', '-'] },
+                        status_pembayaran: '$status_pembayaran',
+                        metode_pembayaran: '$metode_pembayaran',
+                        // createdAt: '$createdAt',
+                        // Menambahkan kolom baru untuk formatted_tanggal_pendakian
+                        tanggal_pendakian: {
+                            $dateToString: {
+                                format: '%d-%m-%Y',
+                                date: '$tanggal_pendakian'
+                            }
+                        },
+                    },
+                },
+            ]);
+    
+            return response.successOK(res, 'Order history retrieved successfully', pendingReservasi);
+        } catch (err) {
+            next(err);
+        }
+    },
+    
 }
+

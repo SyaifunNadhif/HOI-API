@@ -20,6 +20,7 @@ module.exports = {
                     _id: order._id,
                     id_reservasi: order.id_reservasi,
                     total: order.total,
+                    tanggal_pendakian: order.tanggal_pendakian,
                     check_in: formattedCheckIn,
                     check_out: formattedCheckOut,
                     status_pembayaran: order.status_pembayaran,
