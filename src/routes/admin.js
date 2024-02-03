@@ -1,12 +1,12 @@
 const router = require("express").Router();
-const {admin, order} = require('../controllers');
+const {admin} = require('../controllers');
 const jwt = require('../middlewares/barier');
-// const middlewares = require('../middlewares/requireLogin');
 
 
 
-router.get('/reservasipending/', jwt.protected, admin.pendingReservasi);
-router.get('/reservasisuccess/', jwt.protected, admin.successReservasi);
+
+router.get('/reservasiNext/', jwt.protected, admin.reservasiNext);
+router.get('/monthlytotal/', jwt.protected, admin.monthlyTotal);
 router.get('/reservasitoday/', jwt.protected, admin.reservasiToday);
 router.get('/alldata/', jwt.protected, admin.allReservasi);
 router.get('/detailreservasi/:orderid', admin.detail);

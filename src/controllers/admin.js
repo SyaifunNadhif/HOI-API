@@ -4,7 +4,7 @@ const moment = require('moment');
 const {Reservation, User, Order} = require('../db/models/');
 
 module.exports = {
-    pendingReservasi: async (req, res, next) => {
+    reservasiNext: async (req, res, next) => {
         try {
             const status = req.query.status;
     
@@ -87,7 +87,7 @@ module.exports = {
         }
     },
 
-    successReservasi: async (req, res, next) => {
+    monthlyTotal: async (req, res, next) => {
         try {
             const status = "completed";
             
