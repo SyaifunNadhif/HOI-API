@@ -7,6 +7,8 @@ const reservasi = require('./reservasi');
 const regulation = require('./regulation');
 const order = require('./order');
 const admin = require('./admin');
+const notif = require('./notif');
 
 
-module.exports = {auth, post, user, media, mount, reservasi, regulation, order, admin};
+
+module.exports = {auth, post, user, media, mount, reservasi, regulation, order, admin, notif};

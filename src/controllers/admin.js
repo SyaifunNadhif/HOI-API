@@ -90,34 +90,14 @@ module.exports = {
     successReservasi: async (req, res, next) => {
         try {
             const status = "completed";
-        
+            
             const bulan = req.query.bulan;
             const tahun = req.query.tahun;
-        
+            
             if (req.user.user_type !== 'admin') {
                 return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
             }
-        
-            const monthlyTotal = await Order.aggregate([
-                {
-                    $match: {
-                        status_pembayaran: status,
-                        tanggal_pendakian: {
-                            $gte: new Date(`${tahun}-${bulan}-01T00:00:00Z`),
-                            $lt: new Date(`${tahun}-${parseInt(bulan) + 1}-01T00:00:00Z`)
-                        },
-                    },
-                },
-                {
-                    $group: {
-                        _id: null,
-                        total_tiket: { $sum: '$total' },
-                    },
-                },
-            ]);
             
-            console.log(monthlyTotal);
-        
             // Ambil semua data reservasi yang berhasil
             const successReservasi = await Order.find({
                 status_pembayaran: status,
@@ -126,7 +106,7 @@ module.exports = {
                     $lt: new Date(`${tahun}-${parseInt(bulan) + 1}-01`)
                 },
             });
-        
+            
             // Objek respons yang mencakup informasi yang ingin ditampilkan
             const dataSummary = successReservasi.map(order => {
                 return {
@@ -141,8 +121,11 @@ module.exports = {
                     metode_pembayaran: order.metode_pembayaran,
                 };
             });
-        
-            return response.successOK(res, 'Order history retrieved successfully', { monthlyTotal, dataSummary });
+            
+            // Hitung total dari semua 'total' di dalam dataSummary
+            const monthlyTotal = dataSummary.reduce((acc, order) => acc + order.total, 0);
+    
+            return response.successOK(res, 'Order history retrieved successfully', { dataSummary, monthlyTotal });
         } catch (err) {
             next(err);
         }

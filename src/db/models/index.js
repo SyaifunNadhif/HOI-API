@@ -5,6 +5,7 @@ const Mount = require('../models/mount');
 const Order = require('../models/order');
 const Reservation = require('../models/reservasi');
 const Regulation = require('../models/regulation');
+// const Notification = require('../models/notification');
 
 
 module.exports = {User, Post, Notif, Mount, Order, Reservation, Regulation};

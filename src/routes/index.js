@@ -7,13 +7,15 @@ const reservasi = require("./reservasi");
 const regulation = require("./regulation");
 const order = require("./order");
 const admin = require("./admin");
+const notif = require("./notif");
+
 
 
 
 router.get("/", (req, res) => {
 	res.status(200).json({
 		status: true,
-		message: "Welcome to API Reservasi GUnung Ungaran",
+		message: "Welcome to API Reservasi Gunung Ungaran",
 		version: 1.3
 	});
 });
@@ -26,5 +28,7 @@ router.use("/reservasi", reservasi);
 router.use("/regulation", regulation);
 router.use("/order", order);
 router.use("/admin", admin);
+router.use("/notif", notif);
+
 
 module.exports = router;
