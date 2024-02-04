@@ -1,5 +1,6 @@
 const response = require('../utils/response');
 const moment = require('moment');
+const notif = require('../utils/notification');
 
 const {Reservation, User, Order} = require('../db/models/');
 
@@ -41,9 +42,12 @@ module.exports = {
                         },
                     },
                 },
+                {
+                    $sort: { tanggal_pendakian: 1 } // Menambahkan langkah sorting
+                },
             ]);
     
-            return response.successOK(res, 'Order history retrieved successfully', pendingReservasi);
+            return response.successOK(res, 'All Data Reservasi User', pendingReservasi);
         } catch (err) {
             next(err);
         }
@@ -108,7 +112,7 @@ module.exports = {
             });
             
             // Objek respons yang mencakup informasi yang ingin ditampilkan
-            const dataSummary = successReservasi.map(order => {
+            let dataSummary = successReservasi.map(order => {
                 return {
                     _id: order._id,
                     id_reservasi: order.id_reservasi,
@@ -122,6 +126,9 @@ module.exports = {
                 };
             });
             
+            // Sorting dataSummary berdasarkan tanggal_pendakian secara ascending
+            dataSummary = dataSummary.sort((a, b) => new Date(a.tanggal_pendakian) - new Date(b.tanggal_pendakian));
+            
             // Hitung total dari semua 'total' di dalam dataSummary
             const monthlyTotal = dataSummary.reduce((acc, order) => acc + order.total, 0);
     
@@ -130,6 +137,7 @@ module.exports = {
             next(err);
         }
     },
+    
     
 
     detail: async (req, res, next) => {
@@ -200,37 +208,54 @@ module.exports = {
     checkIn: async (req, res, next) => {
         try {
             const { orderid } = req.params;
-
-
+    
             if (req.user.user_type !== 'admin') {
                 return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
             }
-
+    
             // Cari order berdasarkan _id
             const order = await Order.findOne({ _id: orderid });
 
-            // console.log(order.id_user);
-
+            console.log('azil', order.id_user);
+            
             // Periksa apakah order ditemukan
             if (!order) {
                 return response.errorNotFound(res, 'Order not found', null);
             }
-
+    
+            // Dapatkan nilai id_user dari order
+            const userId = order.id_user;
+            console.log(userId);
+    
             // Periksa apakah order sudah check-in atau check-out
             if (order.check_in !== null) {
                 return response.errorBadRequest(res, 'Order has already been checked in', null);
             }
-
+    
             // Update waktu check-in dan status_pembayaran menjadi "success"
             order.check_in = new Date();
             order.status_pembayaran = 'success';
             await order.save();
 
+            const notifData = [{
+                title: "Check-In Berhasil",
+                description: "Semoga Anda dan rombangan  mendapat pengalaman luar biasa. Jangan lupa untuk menjaga kebersihan dan keselamatan selama pendakian.",
+                user_id: order.id_user
+            }];
+
+            notif.sendNotif(notifData);
+
+            console.log(notifData);
+    
+    
+            // Selanjutnya, Anda dapat menggunakan userId sesuai kebutuhan Anda.
+    
             return response.successOK(res, 'Check-in successful', null);
         } catch (error) {
             next(error);
         }
     },
+    
 
     checkOut: async (req, res, next) => {
         try {
@@ -267,6 +292,17 @@ module.exports = {
             order.check_out = new Date();
             order.status_pembayaran = 'completed';
             await order.save();
+            
+            const notifData = [{
+                title: "Pendakian Selesai",
+                description: "Terima kasih atas partisipasi Anda! Pendakian telah selesai dengan sukses. Semoga Anda menikmati setiap momen dan pengalaman selama perjalanan ini. Jangan ragu untuk kembali dan menjelajahi destinasi lainnya di masa mendatang!",
+                user_id: order.id_user
+            }];
+
+            notif.sendNotif(notifData);
+
+            console.log(notifData);
+            
 
             return response.successOK(res, 'Check-out successful', null);
         } catch (error) {
@@ -316,7 +352,7 @@ module.exports = {
                 },
             ]);
     
-            return response.successOK(res, 'Order history retrieved successfully', pendingReservasi);
+            return response.successOK(res, 'All Data Reservasi User Today', pendingReservasi);
         } catch (err) {
             next(err);
         }

@@ -265,9 +265,9 @@ module.exports = {
             console.log(tagihan);
             
             const notifData = [{
-            title: "Order Berhasil",
-            description: `Order Anda berhasil! Silakan selesaikan pembayaran sebesar ${tagihan} saat berada di loket dengan melihatkan Detail Order.`,
-            user_id: userId
+                title: "Order Berhasil",
+                description: `Order Anda berhasil! Silakan selesaikan pembayaran sebesar ${tagihan} saat berada di loket dengan melihatkan Detail Order.`,
+                user_id: userId
             }];
 
             console.log(notifData)

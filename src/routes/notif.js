@@ -4,7 +4,8 @@ const jwt = require('../middlewares/barier');
 
 
 
-// router.get('/data', jwt.protected, auth.whoami);
+router.get('/alldata', jwt.protected, notif.index);
+router.put('/alldata/:id', jwt.protected, notif.readNotif);
 
 
 module.exports = router;
