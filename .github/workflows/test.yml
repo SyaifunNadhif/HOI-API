@@ -1,0 +1,12 @@
+execution:
+  - concureency: 10
+    ramp-up: 1m
+    hold-for: 5m
+    scenario: simple
+
+scenarios:
+  simple:
+    requests:
+      -url: https://api.gunungungaran.site/
+      method: GET
+
