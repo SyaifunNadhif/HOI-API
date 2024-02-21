@@ -326,7 +326,7 @@ module.exports = {
         }
     },
 
-    reservasiToday: async (req, res, next) => {
+    reservasiKontol: async (req, res, next) => {
         try {
             const status = req.query.status;
     
