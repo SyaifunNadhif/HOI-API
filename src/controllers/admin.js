@@ -62,28 +62,32 @@ module.exports = {
             }
 
             // Cari semua order yang dimiliki oleh pengguna dengan id_user yang sesuai
-            const pendingReservasi = await Order.find({ status_pembayaran: status });
+            const statusReservasi = await Order.find({ status_pembayaran: status });
     
             // Objek respons yang mencakup informasi yang ingin ditampilkan
-            const allreservasi = pendingReservasi.map(order => {
+            const allreservasi = await Promise.all(statusReservasi.map(async (order) => {
                 // Periksa kondisi check_in dan check_out
                 const formattedCheckIn = order.check_in === null ? '-' : order.check_in;
                 const formattedCheckOut = order.check_out === null ? '-' : order.check_out;
-            
+
+                const formattedTanggalPendakian = moment(order.tanggal_pendakian).format('DD-MM-YYYY');
+                // Cari user berdasarkan id_user
+                const user = await User.findById(order.id_user);
+    
                 return {
                     _id: order._id,
                     id_reservasi: order.id_reservasi,
-                    tanggal_pendakian: order.tanggal_pendakian,
+                    tanggal_pendakian: formattedTanggalPendakian,
                     total: order.total,
-                    ketua: 'nana',
+                    ketua: user ? user.name : 'Unknown', // Jika user ditemukan, ambil namanya, jika tidak, gunakan 'Unknown'
                     check_in: formattedCheckIn,
                     check_out: formattedCheckOut,
                     status_pembayaran: order.status_pembayaran,
                     metode_pembayaran: order.metode_pembayaran,
-                    createdAt: order.createdAt,
+                    // createdAt: order.createdAt,
                     // Tambahkan atribut lain sesuai kebutuhan
                 };
-            });
+            }));
     
             return response.successOK(res, 'All data Pendakian', allreservasi);
         }catch(err) {
@@ -111,20 +115,24 @@ module.exports = {
                 },
             });
             
+        
             // Objek respons yang mencakup informasi yang ingin ditampilkan
-            let dataSummary = successReservasi.map(order => {
+            let dataSummary = await Promise.all(successReservasi.map(async (order) => {
+                // Dapatkan informasi pengguna berdasarkan id_user
+                const user = await User.findById(order.id_user);
+                
                 return {
                     _id: order._id,
                     id_reservasi: order.id_reservasi,
                     total: order.total,
-                    ketua: 'nana',
+                    ketua: user ? user.name : "Unknown", // Gunakan nama pengguna jika ada, jika tidak gunakan "Unknown"
                     check_in: order.check_in || '-',
                     check_out: order.check_out || '-',
                     tanggal_pendakian: order.tanggal_pendakian,
                     status_pembayaran: order.status_pembayaran,
                     metode_pembayaran: order.metode_pembayaran,
                 };
-            });
+            }));
             
             // Sorting dataSummary berdasarkan tanggal_pendakian secara ascending
             dataSummary = dataSummary.sort((a, b) => new Date(a.tanggal_pendakian) - new Date(b.tanggal_pendakian));
@@ -137,7 +145,6 @@ module.exports = {
             next(err);
         }
     },
-    
     
 
     detail: async (req, res, next) => {
@@ -322,7 +329,7 @@ module.exports = {
             const today = moment().startOf('day').toDate();
     
             // Cari semua order yang memiliki status_pembayaran 'pending' dan tanggal_pendakian sama dengan tanggal hari ini
-            const pendingReservasi = await Order.aggregate([
+            const statusReservasi = await Order.aggregate([
                 {
                     $match: {
                         status_pembayaran: status,
@@ -352,7 +359,7 @@ module.exports = {
                 },
             ]);
     
-            return response.successOK(res, 'All Data Reservasi User Today', pendingReservasi);
+            return response.successOK(res, 'All Data Reservasi User Today', statusReservasi);
         } catch (err) {
             next(err);
         }
