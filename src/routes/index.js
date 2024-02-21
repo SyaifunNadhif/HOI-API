@@ -16,7 +16,7 @@ router.get("/", (req, res) => {
 	res.status(200).json({
 		status: true,
 		message: "Welcome to API Reservasi Gunung Ungaran",
-		version: 1.3
+		version: 1.4
 	});
 });
 
