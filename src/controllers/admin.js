@@ -345,14 +345,6 @@ module.exports = {
                         tanggal_pendakian: { $gte: today, $lt: moment(today).add(1, 'days').toDate() },
                     },
                 },
-                // {
-                //     $lookup: {
-                //         from: 'users', // Nama koleksi dari User
-                //         localField: 'id_user',
-                //         foreignField: '_id',
-                //         as: 'user',
-                //     },
-                // },
                 {
                     $project: {
                         _id: '$_id',
