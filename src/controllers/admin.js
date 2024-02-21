@@ -326,7 +326,7 @@ module.exports = {
         }
     },
 
-    reservasiKontol: async (req, res, next) => {
+    reservasiToday: async (req, res, next) => {
         try {
             const status = req.query.status;
     
@@ -336,12 +336,11 @@ module.exports = {
     
             // Dapatkan tanggal saat ini
             const today = moment().startOf('day').toDate();
-    
-            // Cari semua order yang memiliki status_pembayaran 'pending' dan tanggal_pendakian sama dengan tanggal hari ini
-            const statusReservasi = await Order.aggregate([
+            const pendingReservasi = await Order.aggregate([
                 {
                     $match: {
                         status_pembayaran: status,
+                        // Menambahkan filter tanggal_pendakian
                         tanggal_pendakian: { $gte: today, $lt: moment(today).add(1, 'days').toDate() },
                     },
                 },
@@ -358,11 +357,13 @@ module.exports = {
                         _id: '$_id',
                         id_reservasi: '$id_reservasi',
                         total: '$total',
-                        ketua: { $arrayElemAt: ['$user.name', 0] }, // Menyesuaikan dengan nama kolom yang menyimpan nama di tabel User
+                        ketua: { $arrayElemAt: ['$user.name', 0] },
                         check_in: { $ifNull: ['$check_in', '-'] },
                         check_out: { $ifNull: ['$check_out', '-'] },
                         status_pembayaran: '$status_pembayaran',
                         metode_pembayaran: '$metode_pembayaran',
+                        // createdAt: '$createdAt',
+                        // Menambahkan kolom baru untuk formatted_tanggal_pendakian
                         tanggal_pendakian: {
                             $dateToString: {
                                 format: '%d-%m-%Y',
@@ -371,14 +372,59 @@ module.exports = {
                         },
                     },
                 },
+                {
+                    $sort: { tanggal_pendakian: 1 } // Menambahkan langkah sorting
+                },
             ]);
-            
     
-            return response.successOK(res, 'All Data Reservasi User Today', statusReservasi);
+            return response.successOK(res, 'All Data Reservasi User', pendingReservasi);
         } catch (err) {
             next(err);
         }
     },
+    
+            // Cari semua order yang memiliki status_pembayaran 'pending' dan tanggal_pendakian sama dengan tanggal hari ini
+    //         const statusReservasi = await Order.aggregate([
+    //             {
+    //                 $match: {
+    //                     status_pembayaran: status,
+    //                     tanggal_pendakian: { $gte: today, $lt: moment(today).add(1, 'days').toDate() },
+    //                 },
+    //             },
+    //             {
+    //                 $lookup: {
+    //                     from: 'users', // Nama koleksi dari User
+    //                     localField: 'id_user',
+    //                     foreignField: '_id',
+    //                     as: 'user',
+    //                 },
+    //             },
+    //             {
+    //                 $project: {
+    //                     _id: '$_id',
+    //                     id_reservasi: '$id_reservasi',
+    //                     total: '$total',
+    //                     ketua: { $arrayElemAt: ['$user.name', 0] }, // Menyesuaikan dengan nama kolom yang menyimpan nama di tabel User
+    //                     check_in: { $ifNull: ['$check_in', '-'] },
+    //                     check_out: { $ifNull: ['$check_out', '-'] },
+    //                     status_pembayaran: '$status_pembayaran',
+    //                     metode_pembayaran: '$metode_pembayaran',
+    //                     tanggal_pendakian: {
+    //                         $dateToString: {
+    //                             format: '%d-%m-%Y',
+    //                             date: '$tanggal_pendakian'
+    //                         }
+    //                     },
+    //                 },
+    //             },
+    //         ]);
+            
+    
+    //         return response.successOK(res, 'All Data Reservasi User Today', statusReservasi);
+    //     } catch (err) {
+    //         next(err);
+    //     }
+    // },
     
 }
 
