@@ -23,11 +23,19 @@ module.exports = {
                     },
                 },
                 {
+                    $lookup: {
+                        from: 'users', // Nama koleksi dari User
+                        localField: 'id_user',
+                        foreignField: '_id',
+                        as: 'user',
+                    },
+                },
+                {
                     $project: {
                         _id: '$_id',
                         id_reservasi: '$id_reservasi',
                         total: '$total',
-                        ketua: 'nana',
+                        ketua: { $arrayElemAt: ['$user.name', 0] },
                         check_in: { $ifNull: ['$check_in', '-'] },
                         check_out: { $ifNull: ['$check_out', '-'] },
                         status_pembayaran: '$status_pembayaran',
@@ -333,8 +341,15 @@ module.exports = {
                 {
                     $match: {
                         status_pembayaran: status,
-                        // Menambahkan filter tanggal_pendakian untuk hari ini
                         tanggal_pendakian: { $gte: today, $lt: moment(today).add(1, 'days').toDate() },
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'users', // Nama koleksi dari User
+                        localField: 'id_user',
+                        foreignField: '_id',
+                        as: 'user',
                     },
                 },
                 {
@@ -342,13 +357,11 @@ module.exports = {
                         _id: '$_id',
                         id_reservasi: '$id_reservasi',
                         total: '$total',
-                        ketua: 'nana',
+                        ketua: { $arrayElemAt: ['$user.name', 0] }, // Menyesuaikan dengan nama kolom yang menyimpan nama di tabel User
                         check_in: { $ifNull: ['$check_in', '-'] },
                         check_out: { $ifNull: ['$check_out', '-'] },
                         status_pembayaran: '$status_pembayaran',
                         metode_pembayaran: '$metode_pembayaran',
-                        // createdAt: '$createdAt',
-                        // Menambahkan kolom baru untuk formatted_tanggal_pendakian
                         tanggal_pendakian: {
                             $dateToString: {
                                 format: '%d-%m-%Y',
@@ -358,6 +371,7 @@ module.exports = {
                     },
                 },
             ]);
+            
     
             return response.successOK(res, 'All Data Reservasi User Today', statusReservasi);
         } catch (err) {
