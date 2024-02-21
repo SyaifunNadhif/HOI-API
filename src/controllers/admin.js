@@ -12,6 +12,7 @@ module.exports = {
             if (req.user.user_type !== 'admin') {
                 return response.errorPermission(res, 'You do not have permission to access this resource!', 'you not admin');
             }
+            
     
             // Cari semua order yang memiliki status_pembayaran 'pending' dan tanggal_pendakian lebih besar atau sama dengan tanggal saat ini
             const pendingReservasi = await Order.aggregate([
